@@ -1,7 +1,12 @@
-import { mutation, query, internalAction, internalMutation } from "./_generated/server";
+import {
+  mutation,
+  query,
+  internalAction,
+  internalMutation,
+} from "./_generated/server";
 import { v } from "convex/values";
 import { generateText } from "ai";
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { internal } from "./_generated/api";
 
 const openrouter = createOpenRouter({
@@ -18,13 +23,13 @@ export const writeResponse = internalMutation({
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("messages", {
-    user: args.user,
-    content: args.content,
-    createdAt: Date.now(),
-    model: args.model,
-    conversation: args.conversation,
-    role: "assistant",
-  });
+      user: args.user,
+      content: args.content,
+      createdAt: Date.now(),
+      model: args.model,
+      conversation: args.conversation,
+      role: "assistant",
+    });
   },
 });
 
@@ -98,4 +103,3 @@ export const GetModels = query({
     return await ctx.db.query("models").collect();
   },
 });
-

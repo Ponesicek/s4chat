@@ -40,9 +40,7 @@ export default function RootLayout({
               <AppSidebar />
               <main className="flex-1 min-h-screen">
                 <SidebarTrigger />
-                <div className="p-4 pb-10 h-full">
-                  {children}
-                </div>
+                <div className="p-4 pb-10 h-full">{children}</div>
               </main>
             </SidebarProvider>
           </ConvexClientProvider>

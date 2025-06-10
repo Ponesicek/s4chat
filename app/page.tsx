@@ -60,6 +60,7 @@ function Content() {
   const { user } = useUser();
   const models = useQuery(api.generate.GetModels, {}) ?? [];
   const generateMessageMutation = useMutation(api.generate.generateMessage);
+  const updateModelsMutation = useMutation(api.admin.updateModels);
 
   if (!models) {
     return <div>Loading...</div>;
@@ -82,7 +83,7 @@ function Content() {
 
   return (
     <div>
-      <div className="flex flex-row gap-2 overflow-x-auto">
+      <div className="flex flex-col gap-2 text-wrap max-w-md">
         {models?.map((model) => (
           <ModelCard
             key={model._id}
@@ -94,7 +95,7 @@ function Content() {
         ))}
       </div>
       <div className="flex flex-row gap-2 overflow-x-auto">
-        <Button onClick={generateMessage}>Generate</Button>
+        <Button onClick={() => updateModelsMutation()}>Update Models</Button>
       </div>
     </div>
   );
@@ -118,11 +119,10 @@ function ModelCard({
   return (
     <Button
       onClick={onClick}
-      className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto"
+      className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto text-primary hover:text-primary-foreground"
     >
       <p className="text-sm">{name}</p>
-      <p className="text-xs">{description}</p>
+      <p className="text-xs text-wrap">{description}</p>
     </Button>
   );
 }
-
