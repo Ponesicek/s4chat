@@ -6,7 +6,15 @@ import { v } from "convex/values";
 // app will continue to work.
 // The schema provides more precise TypeScript types.
 export default defineSchema({
-  numbers: defineTable({
-    value: v.number(),
+  messages: defineTable({
+    user: v.string(),
+    body: v.string(),
+    createdAt: v.number(),
+    model: v.id("models"),
+  }),
+  models: defineTable({
+    model: v.string(),
+    name: v.string(),
+    description: v.string(),
   }),
 });
