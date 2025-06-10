@@ -14,6 +14,7 @@ export const writeResponse = internalMutation({
     content: v.string(),
     model: v.id("models"),
     conversation: v.id("conversations"),
+    modelName: v.string(),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("messages", {
@@ -32,11 +33,12 @@ export const generateMessageAction = internalAction({
     user: v.string(),
     content: v.string(),
     model: v.id("models"),
+    modelName: v.string(),
     conversation: v.id("conversations"),
   },
   handler: async (ctx, args) => {
     const response = await generateText({
-      model: openrouter.chat(args.model),
+      model: openrouter.chat(args.modelName),
       prompt: args.content,
     });
     if (!response) {
@@ -46,9 +48,10 @@ export const generateMessageAction = internalAction({
       user: args.user,
       content: response.text,
       model: args.model,
+      modelName: args.modelName,
       conversation: args.conversation,
     });
-    return response;
+    return response.text;
   },
 });
 
@@ -62,14 +65,14 @@ export const generateMessage = mutation({
   handler: async (ctx, args) => {
     const model = await ctx.db
       .query("models")
-      .filter((q) => q.eq(q.field("model"), args.model))
+      .filter((q) => q.eq(q.field("_id"), args.model))
       .first();
 
     if (!model) {
       throw new Error("Model not found");
     }
 
-    console.log("This TypeScript function is running on the server.");
+    console.log("Generating message with model: " + model.model);
     await ctx.db.insert("messages", {
       user: args.user,
       content: args.content,
@@ -82,7 +85,8 @@ export const generateMessage = mutation({
     await ctx.scheduler.runAfter(0, internal.generate.generateMessageAction, {
       user: args.user,
       content: args.content,
-      model: args.model,
+      model: model._id,
+      modelName: model.model,
       conversation: args.conversation,
     });
   },
@@ -95,38 +99,3 @@ export const GetModels = query({
   },
 });
 
-export const GetMessages = query({
-  args: {
-    user: v.string(),
-    conversation: v.id("conversations"),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db.query("messages").filter((q) => q.eq(q.field("user"), args.user)).filter((q) => q.eq(q.field("conversation"), args.conversation)).collect();
-  },
-});
-
-export const GetConversations = query({
-  args: {
-    user: v.string(),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("conversations")
-      .filter((q) => q.eq(q.field("user"), args.user))
-      .collect();
-  },
-});
-
-export const CreateConversation = mutation({
-  args: {
-    user: v.string(),
-  },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("conversations", {
-      user: args.user,
-      createdAt: Date.now(),
-      name: "New Conversation",
-      tags: [],
-    });
-  },
-});

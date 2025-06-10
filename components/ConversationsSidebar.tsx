@@ -18,13 +18,11 @@ import { Button } from "./ui/button";
 import Cookies from "js-cookie";
 import { useParams } from "next/navigation";
 
-
-
 export function AppSidebar() {
   const { user } = useUser();
   const params = useParams();
-  const conversations = useQuery(api.generate.GetConversations, { user: user?.id ?? "" });
-  const createConversationMutation = useMutation(api.generate.CreateConversation);
+  const conversations = useQuery(api.conversations.GetConversations, { user: user?.id ?? "" });
+  const createConversationMutation = useMutation(api.conversations.CreateConversation);
   const createConversation = async () => {
     const conversationId = await createConversationMutation({ user: user?.id ?? "" });
     Cookies.set("conversation", conversationId);
@@ -34,7 +32,9 @@ export function AppSidebar() {
     <Sidebar>
         <SidebarHeader>
             <SidebarGroup>
-                <SidebarGroupLabel className="text-2xl font-bold flex justify-center items-center m-2">S4 Chat</SidebarGroupLabel>
+                <SidebarGroupLabel asChild className="text-2xl font-bold flex justify-center items-center m-2">
+                    <a href="/">S4 Chat</a>
+                </SidebarGroupLabel>
                 <Button onClick={createConversation}>New Chat</Button>
             </SidebarGroup>
         </SidebarHeader>

@@ -24,5 +24,5 @@ export default defineSchema({
     createdAt: v.number(),
     name: v.string(),
     tags: v.array(v.string()),
-  }),
+  }).index("by_user", ["user"]),
 });

@@ -8,19 +8,26 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import Cookies from "js-cookie";
 
 export default function ConversationPage() {
   const { user } = useUser();
   const { id } = useParams();
-  const messages = useQuery(api.generate.GetMessages, { user: user?.id ?? "", conversation: id as Id<"conversations"> });
+  const messages = useQuery(api.conversations.GetMessages, { user: user?.id ?? "", conversation: id as Id<"conversations"> });
   const [message, setMessage] = useState("");
   const generateMessageMutation = useMutation(api.generate.generateMessage);
 
   const generateMessage = () => {
+    setMessage("");
+    var model = Cookies.get("model");
+    if (!model) {
+      Cookies.set("model", "jd73qh6xkwcvvmtr5qtc64pv497hke03"); //Deepseek R1 Free
+      model = "jd73qh6xkwcvvmtr5qtc64pv497hke03";
+    }
     generateMessageMutation({
       user: user?.id ?? "",
       content: message,
-      model: "deepseek/deepseek-r1-0528:free" as Id<"models">,
+      model: model as Id<"models">,
       conversation: id as Id<"conversations">,
     });
   };

@@ -89,6 +89,7 @@ function Content() {
             name={model.name}
             description={model.description}
             model={model.model}
+            modelId={model._id}
           />
         ))}
       </div>
@@ -103,14 +104,16 @@ function ModelCard({
   name,
   description,
   model,
+  modelId,
 }: {
   name: string;
   description: string;
   model: string;
+  modelId: string;
 }) {
   const onClick = useCallback(() => {
-    Cookies.set("model", model);
-  }, [model]);
+    Cookies.set("model", modelId);
+  }, [modelId]);
 
   return (
     <Button
