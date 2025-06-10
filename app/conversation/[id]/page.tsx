@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Cookies from "js-cookie";
+import { ModelBrowser } from "@/components/ModelBrowser";
 
 export default function ConversationPage() {
   const { user } = useUser();
@@ -46,6 +47,7 @@ export default function ConversationPage() {
         ))}
       </div>
       <div className="flex flex-row gap-2 overflow-x-auto p-2">
+        <ModelBrowser />
         <Input
           type="text"
           placeholder="Message"
