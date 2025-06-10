@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { AppSidebar } from "@/components/ConversationsSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +35,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProvider dynamic>
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <main className="flex-1 min-h-screen">
+                <SidebarTrigger />
+                <div className="p-4 pb-10 h-full">
+                  {children}
+                </div>
+              </main>
+            </SidebarProvider>
+          </ConvexClientProvider>
         </ClerkProvider>
       </body>
     </html>

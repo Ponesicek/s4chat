@@ -10,8 +10,11 @@ import { api } from "../convex/_generated/api";
 import { SignUpButton } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
 import { UserButton } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import Cookies from "js-cookie";
 import { useCallback } from "react";
+import { Id } from "../convex/_generated/dataModel";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -54,31 +57,44 @@ function SignInForm() {
 }
 
 function Content() {
+  const { user } = useUser();
   const models = useQuery(api.generate.GetModels, {}) ?? [];
-
-  const generateMessage = useMutation(api.generate.generateMessage);
+  const generateMessageMutation = useMutation(api.generate.generateMessage);
 
   if (!models) {
     return <div>Loading...</div>;
   }
 
-  const generate = (() => {
-    const model = Cookies.get("model");
-    if (!model) {
+  const generateMessage = () => {
+    const modelCookie = Cookies.get("model") ?? "";
+    const model = models.find((m) => m.model === modelCookie);
+    const conversation = Cookies.get("conversation") ?? "";
+    if (model === undefined || conversation === "") {
       return;
     }
-    generateMessage({ user: "test", body: "test", model: model });
-    
-  });
+    generateMessageMutation({
+      user: user?.id ?? "",
+      content: "test",
+      model: model._id,
+      conversation: conversation as Id<"conversations">,
+    });
+  };
 
   return (
     <div>
-      {models?.map((model) => (
-        <ModelCard key={model._id} name={model.name} description={model.description} />
-      ))}
-      <button onClick={generate}>
-        Generate
-      </button>
+      <div className="flex flex-row gap-2 overflow-x-auto">
+        {models?.map((model) => (
+          <ModelCard
+            key={model._id}
+            name={model.name}
+            description={model.description}
+            model={model.model}
+          />
+        ))}
+      </div>
+      <div className="flex flex-row gap-2 overflow-x-auto">
+        <Button onClick={generateMessage}>Generate</Button>
+      </div>
     </div>
   );
 }
@@ -86,20 +102,24 @@ function Content() {
 function ModelCard({
   name,
   description,
+  model,
 }: {
   name: string;
   description: string;
+  model: string;
 }) {
   const onClick = useCallback(() => {
-    Cookies.set("model", name);
-  }, [name]);
+    Cookies.set("model", model);
+  }, [model]);
 
   return (
-    <div onClick={onClick} className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto">
-      <p className="text-sm">
-        {name}
-      </p>
+    <Button
+      onClick={onClick}
+      className="flex flex-col gap-2 bg-slate-200 dark:bg-slate-800 p-4 rounded-md h-28 overflow-auto"
+    >
+      <p className="text-sm">{name}</p>
       <p className="text-xs">{description}</p>
-    </div>
+    </Button>
   );
 }
+
