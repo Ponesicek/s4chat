@@ -77,7 +77,12 @@ function ModelCard({
 export function ModelBrowser() {
   const models = useQuery(api.generate.GetModels, {}) ?? [];
   const [currentModel, setCurrentModel] = useState<string | null>(null);
-
+  /*
+  const updateModels = useMutation(api.admin.updateModels);
+  useEffect(() => {
+    updateModels();
+  }, [updateModels]);
+*/
   if (!models) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -88,6 +93,8 @@ export function ModelBrowser() {
       </div>
     );
   }
+
+
 
   return (
     <div className="flex flex-col gap-4">

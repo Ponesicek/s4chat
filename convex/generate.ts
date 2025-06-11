@@ -106,7 +106,6 @@ export const generateMessage = mutation({
       conversation: args.conversation,
       role: "user",
     });
-
     await ctx.scheduler.runAfter(0, internal.generate.generateMessageAction, {
       user: args.user,
       content: args.content,

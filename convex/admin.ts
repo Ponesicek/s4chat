@@ -46,6 +46,21 @@ const models = [
     price: [0, 0],
     pinned: true,
   },
+  {
+    model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
+    name: "Deepseek R1 0528 Qwen3 8B",
+    description:
+      "DeepSeek-R1-0528 is a lightly upgraded release of DeepSeek R1 that taps more compute and smarter post-training tricks, pushing its reasoning and inference to the brink of flagship models like O3 and Gemini 2.5 Pro. It now tops math, programming, and logic leaderboards, showcasing a step-change in depth-of-thought.",
+    input_modalities: [],
+    output_modalities: [],
+    createdAt: "May 29, 2025",
+    author: "Deeseek",
+    context_length: 131072,
+    reasoning: true,
+    reasoning_tags: [],
+    price: [0, 0],
+    pinned: true,
+  },
 ];
 
 export const updateModels = mutation({
