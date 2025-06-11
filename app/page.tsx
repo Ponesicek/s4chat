@@ -3,18 +3,10 @@
 import {
   Authenticated,
   Unauthenticated,
-  useMutation,
-  useQuery,
 } from "convex/react";
-import { api } from "../convex/_generated/api";
 import { SignUpButton } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
 import { UserButton } from "@clerk/nextjs";
-import { useUser } from "@clerk/nextjs";
-import Cookies from "js-cookie";
-import { useCallback } from "react";
-import { Id } from "../convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -57,9 +49,6 @@ function SignInForm() {
 }
 
 function Content() {
-  const { user } = useUser();
-  const generateMessageMutation = useMutation(api.generate.generateMessage);
-
   return (
     <div>
       <div className="flex flex-col gap-2 text-wrap max-w-md">

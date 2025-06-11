@@ -1,12 +1,23 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
 
 export const GetMessages = query({
   args: {
     user: v.string(),
     conversation: v.id("conversations"),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id("messages"),
+      _creationTime: v.number(),
+      user: v.string(),
+      content: v.string(),
+      createdAt: v.number(),
+      model: v.id("models"),
+      conversation: v.id("conversations"),
+      role: v.union(v.literal("user"), v.literal("assistant")),
+    }),
+  ),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("messages")
@@ -20,6 +31,16 @@ export const GetConversations = query({
   args: {
     user: v.string(),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id("conversations"),
+      _creationTime: v.number(),
+      user: v.string(),
+      createdAt: v.number(),
+      name: v.string(),
+      tags: v.array(v.string()),
+    }),
+  ),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("conversations")
@@ -32,6 +53,7 @@ export const CreateConversation = mutation({
   args: {
     user: v.string(),
   },
+  returns: v.id("conversations"),
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) {
@@ -51,6 +73,7 @@ export const DeleteConversation = mutation({
     user: v.string(),
     conversation: v.id("conversations"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) {
@@ -59,6 +82,7 @@ export const DeleteConversation = mutation({
     if (user.subject !== args.user) {
       throw new Error("User not authorized");
     }
-    return await ctx.db.delete(args.conversation);
+    await ctx.db.delete(args.conversation);
+    return null;
   },
 });

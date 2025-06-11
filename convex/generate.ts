@@ -5,9 +5,10 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { v } from "convex/values";
-import { generateText } from "ai";
+import { streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { internal } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -20,16 +21,23 @@ export const writeResponse = internalMutation({
     model: v.id("models"),
     conversation: v.id("conversations"),
     modelName: v.string(),
+    messageId: v.optional(v.id("messages")),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("messages", {
-      user: args.user,
+    if (args.messageId === undefined) {
+      return await ctx.db.insert("messages", {
+        user: args.user,
+        content: args.content,
+        createdAt: Date.now(),
+        model: args.model,
+        conversation: args.conversation,
+        role: "assistant",
+      });  
+    }
+    await ctx.db.patch(args.messageId, {
       content: args.content,
-      createdAt: Date.now(),
-      model: args.model,
-      conversation: args.conversation,
-      role: "assistant",
     });
+    
   },
 });
 
@@ -42,21 +50,34 @@ export const generateMessageAction = internalAction({
     conversation: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    const response = await generateText({
+    const response = streamText({
       model: openrouter.chat(args.modelName),
       prompt: args.content,
     });
     if (!response) {
       return;
     }
-    await ctx.runMutation(internal.generate.writeResponse, {
+    let message = "";
+    const messageId = await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
-      content: response.text,
+      content: message,
       model: args.model,
       modelName: args.modelName,
       conversation: args.conversation,
+      messageId: undefined,
     });
-    return response.text;
+    for await (const chunk of response.textStream) {
+      message += chunk;
+      await ctx.runMutation(internal.generate.writeResponse, {
+        user: args.user,
+        content: message,
+        model: args.model,
+        modelName: args.modelName,
+        conversation: args.conversation,
+        messageId: messageId as Id<"messages">,
+      });
+    }
+    return message;
   },
 });
 
