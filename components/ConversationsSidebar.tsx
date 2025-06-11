@@ -17,6 +17,7 @@ import { useUser } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import Cookies from "js-cookie";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function AppSidebar() {
   const { user } = useUser();
@@ -46,7 +47,7 @@ export function AppSidebar() {
             asChild
             className="text-2xl font-bold flex justify-center items-center m-2"
           >
-            <a href="/">S4 Chat</a>
+            <Link href="/">S4 Chat</Link>
           </SidebarGroupLabel>
           <Button onClick={createConversation}>New Chat</Button>
         </SidebarGroup>
@@ -60,7 +61,7 @@ export function AppSidebar() {
                 conversations.map((conversation) => (
                   <SidebarMenuItem key={conversation._id}>
                     <SidebarMenuButton asChild>
-                      <a
+                      <Link
                         href={`/conversation/${conversation._id}`}
                         className={
                           params.id === conversation._id
@@ -87,7 +88,7 @@ export function AppSidebar() {
                         >
                           X
                         </Button>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))
