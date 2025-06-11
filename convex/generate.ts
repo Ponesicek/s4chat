@@ -32,12 +32,11 @@ export const writeResponse = internalMutation({
         model: args.model,
         conversation: args.conversation,
         role: "assistant",
-      });  
+      });
     }
     await ctx.db.patch(args.messageId, {
       content: args.content,
     });
-    
   },
 });
 

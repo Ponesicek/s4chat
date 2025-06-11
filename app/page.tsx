@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Authenticated,
-  Unauthenticated,
-} from "convex/react";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { SignUpButton } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
 import { UserButton } from "@clerk/nextjs";
@@ -51,9 +48,7 @@ function SignInForm() {
 function Content() {
   return (
     <div>
-      <div className="flex flex-col gap-2 text-wrap max-w-md">
-      </div>
+      <div className="flex flex-col gap-2 text-wrap max-w-md"></div>
     </div>
   );
 }
-
