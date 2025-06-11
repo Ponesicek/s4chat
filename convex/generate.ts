@@ -5,9 +5,9 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { v } from "convex/values";
-import { streamText } from "ai";
+import { generateText, streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
 const openrouter = createOpenRouter({
@@ -22,8 +22,15 @@ export const writeResponse = internalMutation({
     conversation: v.id("conversations"),
     modelName: v.string(),
     messageId: v.optional(v.id("messages")),
+    isName: v.boolean(),
   },
   handler: async (ctx, args) => {
+    if (args.isName) {
+      await ctx.db.patch(args.conversation, {
+        name: args.content,
+      });
+      return;
+    }
     if (args.messageId === undefined) {
       return await ctx.db.insert("messages", {
         user: args.user,
@@ -49,13 +56,44 @@ export const generateMessageAction = internalAction({
     conversation: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    const response = streamText({
-      model: openrouter.chat(args.modelName),
-      prompt: args.content,
-    });
+    const [response, shouldGenerateName] = await Promise.all([
+      streamText({
+        model: openrouter.chat(args.modelName),
+        prompt: args.content,
+      }),
+      ctx
+        .runQuery(api.conversations.GetMessages, {
+          user: args.user,
+          conversation: args.conversation,
+        })
+        .then((messages) => messages.length === 1),
+    ]);
+
     if (!response) {
       return;
     }
+
+    let namePromise;
+    if (shouldGenerateName) {
+      namePromise = generateText({
+        model: openrouter.chat("google/gemini-2.0-flash-001"),
+        prompt: args.content,
+        system:
+          "You are a helpful assistant that generates a name for a conversation. The name should be a phrase that captures the essence of the conversation. The name should be no more than 5 words.",
+      }).then(async (generateName) => {
+        if (generateName.text) {
+          await ctx.runMutation(internal.generate.writeResponse, {
+            user: args.user,
+            content: generateName.text.trim(),
+            model: args.model,
+            modelName: args.modelName,
+            conversation: args.conversation,
+            isName: true,
+          });
+        }
+      });
+    }
+
     let message = "";
     const messageId = await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
@@ -64,7 +102,10 @@ export const generateMessageAction = internalAction({
       modelName: args.modelName,
       conversation: args.conversation,
       messageId: undefined,
+      isName: false,
     });
+
+    console.log("Generating message with model: " + args.modelName);
     for await (const chunk of response.textStream) {
       message += chunk;
       await ctx.runMutation(internal.generate.writeResponse, {
@@ -74,8 +115,14 @@ export const generateMessageAction = internalAction({
         modelName: args.modelName,
         conversation: args.conversation,
         messageId: messageId as Id<"messages">,
+        isName: false,
       });
     }
+
+    if (namePromise) {
+      await namePromise;
+    }
+
     return message;
   },
 });
@@ -97,7 +144,6 @@ export const generateMessage = mutation({
       throw new Error("Model not found");
     }
 
-    console.log("Generating message with model: " + model.model);
     await ctx.db.insert("messages", {
       user: args.user,
       content: args.content,

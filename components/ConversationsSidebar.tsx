@@ -19,8 +19,6 @@ import Cookies from "js-cookie";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-
-
 export function AppSidebar() {
   const { user } = useUser();
   const router = useRouter();
