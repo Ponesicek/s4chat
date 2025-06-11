@@ -30,11 +30,13 @@ export default function ConversationPage() {
   const [message, setMessage] = useState("");
   const generateMessageMutation = useMutation(api.generate.generateMessage);
   const defaultModel = process.env.NEXT_PUBLIC_DEFAULT_MODEL;
+  const [loading, setLoading] = useState(true);
 
   // Memoize the message list to prevent unnecessary re-renders
   const messageList = useMemo(() => {
     if (!messages) return null;
 
+    setLoading(false);
     return messages.map((message) => (
       <div
         key={message._id}
@@ -99,6 +101,16 @@ export default function ConversationPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <p className="text-gray-600">Loading conversation...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-8rem)]">
       {/* Messages area */}

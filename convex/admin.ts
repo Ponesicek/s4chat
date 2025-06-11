@@ -1,6 +1,5 @@
 import { mutation } from "./_generated/server";
 
-
 const models = [
   {
     model: "deepseek/deepseek-chat-v3-0324:free",
