@@ -56,18 +56,24 @@ export const generateMessageAction = internalAction({
     conversation: v.id("conversations"),
   },
   handler: async (ctx, args) => {
-    const [response, shouldGenerateName] = await Promise.all([
-      streamText({
-        model: openrouter.chat(args.modelName),
-        prompt: args.content,
-      }),
-      ctx
-        .runQuery(api.conversations.GetMessages, {
-          user: args.user,
-          conversation: args.conversation,
-        })
-        .then((messages) => messages.length === 1),
-    ]);
+    const messagesQuery = await ctx.runQuery(api.conversations.GetMessages, {
+      user: args.user,
+      conversation: args.conversation,
+    });
+    const shouldGenerateName = messagesQuery.length === 1;
+    let messagesHistory: { role: "user" | "assistant"; content: string }[] = [];
+    for (const message of messagesQuery.reverse()) {
+      if (message.role === "user") {
+        messagesHistory.push({ role: "user", content: message.content });
+      } else {
+        messagesHistory.push({ role: "assistant", content: message.content });
+      }
+    }
+    messagesHistory.push({ role: "user", content: args.content });
+    const response = await streamText({
+      model: openrouter.chat(args.modelName),
+      messages: messagesHistory,
+    });
 
     if (!response) {
       return;

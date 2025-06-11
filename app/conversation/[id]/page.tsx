@@ -13,9 +13,12 @@ import { ModelBrowser } from "@/components/ModelBrowser";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import rehypeHighlight from "rehype-highlight";
+import rehypeKatex from "rehype-katex";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import "katex/dist/katex.min.css";
 
 interface ChatMessageProps {
   content: string;
@@ -23,42 +26,58 @@ interface ChatMessageProps {
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
   return (
-    <article className="
+    <article
+      className="
     prose sm:prose-sm md:prose-md lg:prose
     flex flex-col gap-2 m-0 p-0
-  ">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-        code({ className, children, ...props }: React.HTMLProps<HTMLElement>) {
-          const match = /language-(\w+)/.exec(className || "");
-          return match ? (
-            <SyntaxHighlighter
-              // @ts-ignore - vscDarkPlus style compatibility
-              style={vscDarkPlus}
-              language={match[1]}
-              PreTag="div"
-              {...props}
-            >
-              {String(children).replace(/\n$/, "")}
-            </SyntaxHighlighter>
-          ) : (
-            <code className={className} {...props}>
-              {children}
-            </code>
-          );
-        },
-      }}
+  "
     >
-      {content}
-    </ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeHighlight, rehypeKatex]}
+        components={{
+          code({
+            className,
+            children,
+            ...props
+          }: React.HTMLProps<HTMLElement>) {
+            const match = /language-(\w+)/.exec(className || "");
+
+            // Extract text content from React elements
+            const getTextContent = (node: any): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) return node.map(getTextContent).join("");
+              if (node?.props?.children)
+                return getTextContent(node.props.children);
+              return "";
+            };
+
+            const codeString = getTextContent(children);
+
+            return match ? (
+              <SyntaxHighlighter
+                style={oneLight}
+                language={match[1]}
+                PreTag="div"
+              >
+                {codeString.replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </article>
   );
 };
 
 export default function ConversationPage() {
-  
   const { user } = useUser();
   const { id } = useParams();
   const conversationId = id as Id<"conversations">;
@@ -116,12 +135,7 @@ export default function ConversationPage() {
       model: model as Id<"models">,
       conversation: conversationId,
     });
-  }, [
-    message,
-    user?.id,
-    generateMessageMutation,
-    conversationId,
-  ]);
+  }, [message, user?.id, generateMessageMutation, conversationId]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {

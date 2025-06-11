@@ -27,7 +27,11 @@ export default defineSchema({
     reasoning_tags: v.array(v.string()),
     price: v.array(v.number()),
     pinned: v.boolean(),
-    provider: v.union(v.literal("openrouter"), v.literal("anthropic")),
+    provider: v.union(
+      v.literal("openrouter"),
+      v.literal("anthropic"),
+      v.literal("google"),
+    ),
   }),
   conversations: defineTable({
     user: v.string(),

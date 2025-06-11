@@ -79,7 +79,9 @@ export function ModelBrowser() {
   const [currentModel, setCurrentModel] = useState<string | null>(null);
   const currentModelID = Cookies.get("model");
   useEffect(() => {
-    setCurrentModel(modelsMemo?.find((model) => model._id === currentModelID)?.name ?? null);
+    setCurrentModel(
+      modelsMemo?.find((model) => model._id === currentModelID)?.name ?? null,
+    );
   }, [currentModelID, modelsMemo]);
 
   /*
@@ -88,7 +90,7 @@ export function ModelBrowser() {
     updateModels();
   }, [updateModels]);
   */
-  
+
   if (!models) {
     return (
       <div className="flex items-center justify-center p-8">

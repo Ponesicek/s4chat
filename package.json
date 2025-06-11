@@ -25,6 +25,7 @@
     "convex": "^1.23.0",
     "dotenv": "^16.5.0",
     "js-cookie": "^3.0.5",
+    "katex": "^0.16.22",
     "lucide-react": "^0.513.0",
     "next": "15.2.3",
     "react": "^19.0.0",
@@ -32,8 +33,10 @@
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^15.6.1",
     "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {

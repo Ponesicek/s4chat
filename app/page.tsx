@@ -1,13 +1,18 @@
 "use client";
 
-import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
+import {
+  Authenticated,
+  Unauthenticated,
+  useMutation,
+  useQuery,
+} from "convex/react";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
 import { InputArea } from "./conversation/[id]/page";
 import { useCallback, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   return (
@@ -72,18 +77,18 @@ function Content() {
     },
     [generateMessage],
   );
-  
+
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
       <div className="flex flex-col gap-4 items-center justify-center">
         <h2 className="text-3xl font-bold text-center">Start a Conversation</h2>
         <div className="w-full">
-          <InputArea 
-            message={message} 
-            setMessage={setMessage} 
-            handleKeyPress={handleKeyPress} 
-            user={user} 
-            generateMessage={generateMessage} 
+          <InputArea
+            message={message}
+            setMessage={setMessage}
+            handleKeyPress={handleKeyPress}
+            user={user}
+            generateMessage={generateMessage}
           />
         </div>
       </div>
