@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
@@ -15,8 +15,9 @@ export default function ConversationPage() {
   const { user } = useUser();
   const { id } = useParams();
   const conversationId = id as Id<"conversations">;
+  const searchParams = useSearchParams();
+  const initialMessage = searchParams.get("message") ?? "";
 
-  // Only fetch messages if user is authenticated and conversation ID exists
   const messages = useQuery(
     api.conversations.GetMessages,
     user?.id && conversationId
@@ -27,12 +28,10 @@ export default function ConversationPage() {
       : "skip",
   );
 
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialMessage);
   const generateMessageMutation = useMutation(api.generate.generateMessage);
-  const defaultModel = process.env.NEXT_PUBLIC_DEFAULT_MODEL;
   const [loading, setLoading] = useState(true);
 
-  // Memoize the message list to prevent unnecessary re-renders
   const messageList = useMemo(() => {
     if (!messages) return null;
 
@@ -60,8 +59,8 @@ export default function ConversationPage() {
     setMessage("");
     let model = Cookies.get("model");
     if (!model) {
-      Cookies.set("model", defaultModel ?? "");
-      model = defaultModel ?? "";
+      Cookies.set("model", "google/gemini-2.0-flash-001");
+      model = "google/gemini-2.0-flash-001";
     }
 
     await generateMessageMutation({
@@ -73,7 +72,6 @@ export default function ConversationPage() {
   }, [
     message,
     user?.id,
-    defaultModel,
     generateMessageMutation,
     conversationId,
   ]);
@@ -113,7 +111,6 @@ export default function ConversationPage() {
   }
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-8rem)]">
-      {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages === undefined ? (
           <div className="flex items-center justify-center h-full">
@@ -137,30 +134,52 @@ export default function ConversationPage() {
           messageList
         )}
       </div>
+      <InputArea
+        message={message}
+        setMessage={setMessage}
+        handleKeyPress={handleKeyPress}
+        user={user}
+        generateMessage={generateMessage}
+      />
+    </div>
+  );
+}
 
-      {/* Input area */}
-      <div className="border-t bg-white p-4">
-        <div className="flex flex-row gap-2 items-end">
-          <ModelBrowser />
-          <div className="flex-1">
-            <Input
-              type="text"
-              placeholder="Type your message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={!user?.id}
-              className="resize-none"
-            />
-          </div>
-          <Button
-            onClick={generateMessage}
-            disabled={!message.trim() || !user?.id}
-            className="px-6"
-          >
-            Send
-          </Button>
+export function InputArea({
+  message,
+  setMessage,
+  handleKeyPress,
+  user,
+  generateMessage,
+}: {
+  message: string;
+  setMessage: (message: string) => void;
+  handleKeyPress: (e: React.KeyboardEvent) => void;
+  user: ReturnType<typeof useUser>["user"];
+  generateMessage: () => void;
+}) {
+  return (
+    <div className="border-t bg-white p-4">
+      <div className="flex flex-row gap-2 items-end">
+        <ModelBrowser />
+        <div className="flex-1">
+          <Input
+            type="text"
+            placeholder="Type your message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={!user?.id}
+            className="resize-none"
+          />
         </div>
+        <Button
+          onClick={generateMessage}
+          disabled={!message.trim() || !user?.id}
+          className="px-6"
+        >
+          Send
+        </Button>
       </div>
     </div>
   );

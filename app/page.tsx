@@ -1,21 +1,18 @@
 "use client";
 
-import { Authenticated, Unauthenticated } from "convex/react";
-import { SignUpButton } from "@clerk/nextjs";
+import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
+import { SignUpButton, useUser } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
-import { UserButton } from "@clerk/nextjs";
+import { InputArea } from "./conversation/[id]/page";
+import { useCallback, useState } from "react";
+import { api } from "@/convex/_generated/api";
+import Cookies from "js-cookie";
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   return (
-    <>
-      <header className="sticky top-0 z-10 bg-background p-4 border-b-2 border-slate-200 dark:border-slate-800 flex flex-row justify-between items-center">
-        Convex + Next.js + Clerk
-        <UserButton />
-      </header>
-      <main className="p-8 flex flex-col gap-8">
-        <h1 className="text-4xl font-bold text-center">
-          Convex + Next.js + Clerk
-        </h1>
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-1 flex items-center justify-center p-8">
         <Authenticated>
           <Content />
         </Authenticated>
@@ -23,13 +20,13 @@ export default function Home() {
           <SignInForm />
         </Unauthenticated>
       </main>
-    </>
+    </div>
   );
 }
 
 function SignInForm() {
   return (
-    <div className="flex flex-col gap-8 w-96 mx-auto">
+    <div className="flex flex-col gap-8 w-full max-w-lg mx-auto p-8">
       <p>Log in to see the numbers</p>
       <SignInButton mode="modal">
         <button className="bg-foreground text-background px-4 py-2 rounded-md">
@@ -46,9 +43,50 @@ function SignInForm() {
 }
 
 function Content() {
+  const models = useQuery(api.generate.GetModels, {});
+  const defaultModel = models?.[0]?._id;
+  const model = Cookies.get("model");
+  if (!model) {
+    Cookies.set("model", defaultModel ?? "");
+  }
+  const [message, setMessage] = useState("");
+  const router = useRouter();
+  const createConversationMutation = useMutation(
+    api.conversations.CreateConversation,
+  );
+  const { user } = useUser();
+  const generateMessage = useCallback(async () => {
+    const conversationId = await createConversationMutation({
+      user: user?.id ?? "",
+    });
+    Cookies.set("conversation", conversationId);
+    router.push(`/conversation/${conversationId}?message=${message}`);
+  }, [router, createConversationMutation, user, message]);
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        generateMessage();
+      }
+    },
+    [generateMessage],
+  );
+  
   return (
-    <div>
-      <div className="flex flex-col gap-2 text-wrap max-w-md"></div>
+    <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
+      <div className="flex flex-col gap-4 items-center justify-center">
+        <h2 className="text-3xl font-bold text-center">Start a Conversation</h2>
+        <div className="w-full">
+          <InputArea 
+            message={message} 
+            setMessage={setMessage} 
+            handleKeyPress={handleKeyPress} 
+            user={user} 
+            generateMessage={generateMessage} 
+          />
+        </div>
+      </div>
     </div>
   );
 }

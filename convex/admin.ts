@@ -2,6 +2,21 @@ import { mutation } from "./_generated/server";
 
 const models = [
   {
+    model: "google/gemini-2.0-flash-001",
+    name: "Gemini 2.0 Flash Experimental",
+    description:
+      "Gemini Flash 2.0 offers a significantly faster time to first token (TTFT) compared to Gemini Flash 1.5, while maintaining quality on par with larger models like Gemini Pro 1.5. It introduces notable enhancements in multimodal understanding, coding capabilities, complex instruction following, and function calling. These advancements come together to deliver more seamless and robust agentic experiences.",
+    input_modalities: [],
+    output_modalities: [],
+    createdAt: "Feb 5, 2025",
+    author: "Google",
+    context_length: 1048576,
+    reasoning: false,
+    reasoning_tags: [],
+    price: [10, 40],
+    pinned: true,
+  },
+  {
     model: "deepseek/deepseek-chat-v3-0324:free",
     name: "DeepSeek V3",
     description:
@@ -29,21 +44,6 @@ const models = [
     reasoning: false,
     reasoning_tags: [],
     price: [0, 0],
-    pinned: true,
-  },
-  {
-    model: "google/gemini-2.0-flash-001",
-    name: "Gemini 2.0 Flash Experimental",
-    description:
-      "Gemini Flash 2.0 offers a significantly faster time to first token (TTFT) compared to Gemini Flash 1.5, while maintaining quality on par with larger models like Gemini Pro 1.5. It introduces notable enhancements in multimodal understanding, coding capabilities, complex instruction following, and function calling. These advancements come together to deliver more seamless and robust agentic experiences.",
-    input_modalities: [],
-    output_modalities: [],
-    createdAt: "Feb 5, 2025",
-    author: "Google",
-    context_length: 1048576,
-    reasoning: false,
-    reasoning_tags: [],
-    price: [10, 40],
     pinned: true,
   },
   {
