@@ -4,10 +4,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Cookies from "js-cookie";
 import { api } from "@/convex/_generated/api";
-import { useMutation } from "convex/react";
 import { useQuery } from "convex/react";
 
 function ModelCard({
@@ -15,7 +14,6 @@ function ModelCard({
   description,
   model,
   modelId,
-  currentModel,
   setCurrentModel,
 }: {
   name: string;
@@ -28,7 +26,7 @@ function ModelCard({
   const onClick = useCallback(() => {
     Cookies.set("model", modelId);
     setCurrentModel(name);
-  }, [modelId, setCurrentModel]);
+  }, [modelId, setCurrentModel, name]);
 
   return (
     <div
@@ -77,7 +75,6 @@ function ModelCard({
 }
 
 export function ModelBrowser() {
-  const updateModelsMutation = useMutation(api.admin.updateModels);
   const models = useQuery(api.generate.GetModels, {}) ?? [];
   const [currentModel, setCurrentModel] = useState<string | null>(null);
 
