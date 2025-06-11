@@ -5,11 +5,9 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useState, useMemo, useCallback } from "react";
 import Cookies from "js-cookie";
-import { ModelBrowser } from "@/components/ModelBrowser";
+import { InputArea } from "@/components/InputArea";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -24,7 +22,7 @@ interface ChatMessageProps {
   content: string;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
   return (
     <article
       className="
@@ -211,42 +209,4 @@ export default function ConversationPage() {
   );
 }
 
-export function InputArea({
-  message,
-  setMessage,
-  handleKeyPress,
-  user,
-  generateMessage,
-}: {
-  message: string;
-  setMessage: (message: string) => void;
-  handleKeyPress: (e: React.KeyboardEvent) => void;
-  user: ReturnType<typeof useUser>["user"];
-  generateMessage: () => void;
-}) {
-  return (
-    <div className="border-t bg-white p-4">
-      <div className="flex flex-row gap-2 items-end">
-        <ModelBrowser />
-        <div className="flex-1">
-          <Input
-            type="text"
-            placeholder="Type your message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={!user?.id}
-            className="resize-none"
-          />
-        </div>
-        <Button
-          onClick={generateMessage}
-          disabled={!message.trim() || !user?.id}
-          className="px-6"
-        >
-          Send
-        </Button>
-      </div>
-    </div>
-  );
-}
+

@@ -8,7 +8,7 @@ import {
 } from "convex/react";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
-import { InputArea } from "./conversation/[id]/page";
+import { InputArea } from "@/components/InputArea";
 import { useCallback, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
