@@ -15,6 +15,7 @@ const models = [
     reasoning_tags: [],
     price: [10, 40],
     pinned: true,
+    provider: "openrouter" as const,
   },
   {
     model: "deepseek/deepseek-chat-v3-0324:free",
@@ -30,6 +31,7 @@ const models = [
     reasoning_tags: [],
     price: [0, 0],
     pinned: true,
+    provider: "openrouter" as const,
   },
   {
     model: "deepseek/deepseek-r1:free",
@@ -45,6 +47,7 @@ const models = [
     reasoning_tags: [],
     price: [0, 0],
     pinned: true,
+    provider: "openrouter" as const,
   },
   {
     model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
@@ -54,12 +57,13 @@ const models = [
     input_modalities: [],
     output_modalities: [],
     createdAt: "May 29, 2025",
-    author: "Deeseek",
+    author: "DeepSeek",
     context_length: 131072,
     reasoning: true,
     reasoning_tags: [],
     price: [0, 0],
     pinned: true,
+    provider: "anthropic" as const,
   },
 ];
 

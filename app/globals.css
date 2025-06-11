@@ -1,5 +1,7 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
+@import "highlight.js/styles/github.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -119,4 +121,8 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.prose {
+  @apply prose-p:m-1 prose-headings:m-1 prose-ul:m-1;
 }

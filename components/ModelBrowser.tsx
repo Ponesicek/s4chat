@@ -7,7 +7,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Cookies from "js-cookie";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 
 function ModelCard({
   name,
@@ -81,12 +81,14 @@ export function ModelBrowser() {
   useEffect(() => {
     setCurrentModel(modelsMemo?.find((model) => model._id === currentModelID)?.name ?? null);
   }, [currentModelID, modelsMemo]);
+
   /*
   const updateModels = useMutation(api.admin.updateModels);
   useEffect(() => {
     updateModels();
   }, [updateModels]);
   */
+  
   if (!models) {
     return (
       <div className="flex items-center justify-center p-8">

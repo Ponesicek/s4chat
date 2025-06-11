@@ -10,8 +10,54 @@ import { Button } from "@/components/ui/button";
 import { useState, useMemo, useCallback } from "react";
 import Cookies from "js-cookie";
 import { ModelBrowser } from "@/components/ModelBrowser";
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+interface ChatMessageProps {
+  content: string;
+}
+
+export const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
+  return (
+    <article className="
+    prose sm:prose-sm md:prose-md lg:prose
+    flex flex-col gap-2 m-0 p-0
+  ">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight]}
+        components={{
+        code({ className, children, ...props }: any) {
+          const match = /language-(\w+)/.exec(className || "");
+          return match ? (
+            <SyntaxHighlighter
+              style={vscDarkPlus as any}
+              language={match[1]}
+              PreTag="div"
+              {...props}
+            >
+              {String(children).replace(/\n$/, "")}
+            </SyntaxHighlighter>
+          ) : (
+            <code className={className} {...props}>
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+    </article>
+  );
+};
 
 export default function ConversationPage() {
+  
   const { user } = useUser();
   const { id } = useParams();
   const conversationId = id as Id<"conversations">;
@@ -48,7 +94,7 @@ export default function ConversationPage() {
         <div className="text-xs text-gray-500 mb-1">
           {message.role === "user" ? "You" : "Assistant"}
         </div>
-        <div className="whitespace-pre-wrap">{message.content}</div>
+        <ChatMessage content={message.content} />
       </div>
     ));
   }, [messages]);
