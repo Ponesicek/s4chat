@@ -31,11 +31,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
         components={{
-        code({ className, children, ...props }: any) {
+        code({ className, children, ...props }: React.HTMLProps<HTMLElement>) {
           const match = /language-(\w+)/.exec(className || "");
           return match ? (
             <SyntaxHighlighter
-              style={vscDarkPlus as any}
+              // @ts-ignore - vscDarkPlus style compatibility
+              style={vscDarkPlus}
               language={match[1]}
               PreTag="div"
               {...props}

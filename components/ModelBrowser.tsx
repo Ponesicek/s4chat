@@ -7,7 +7,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Cookies from "js-cookie";
 import { api } from "@/convex/_generated/api";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 
 function ModelCard({
   name,
