@@ -5,6 +5,7 @@ export const GetMessages = query({
   args: {
     user: v.string(),
     conversation: v.id("conversations"),
+    limit: v.optional(v.number()),
   },
   returns: v.array(
     v.object({
@@ -18,11 +19,12 @@ export const GetMessages = query({
     }),
   ),
   handler: async (ctx, args) => {
+    const limit = args.limit ?? 40;
     return await ctx.db
       .query("messages")
-      .filter((q) => q.eq(q.field("user"), args.user))
-      .filter((q) => q.eq(q.field("conversation"), args.conversation))
-      .collect();
+      .withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
+      .order("desc")
+      .take(limit);
   },
 });
 

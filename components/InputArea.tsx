@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ModelBrowser } from "@/components/ModelBrowser";
@@ -17,6 +17,14 @@ export function InputArea({
   user: ReturnType<typeof useUser>["user"];
   generateMessage: () => void;
 }) {
+  // Keep a reference to the underlying input so we can focus it when the component mounts.
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the input once the component is mounted.
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div className="border-t bg-white p-4">
       <div className="flex flex-row gap-2 items-end">
@@ -30,6 +38,7 @@ export function InputArea({
             onKeyPress={handleKeyPress}
             disabled={!user?.id}
             className="resize-none"
+            ref={inputRef}
           />
         </div>
         <Button

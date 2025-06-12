@@ -12,7 +12,7 @@ export default defineSchema({
     model: v.id("models"),
     conversation: v.id("conversations"),
     role: v.union(v.literal("user"), v.literal("assistant")),
-  }),
+  }).index("by_conversation", ["conversation"]),
   models: defineTable({
     model: v.string(),
     name: v.string(),

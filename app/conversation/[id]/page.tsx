@@ -5,16 +5,14 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import Cookies from "js-cookie";
-import { InputArea } from "@/components/InputArea";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
-import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/prism";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
 
@@ -32,7 +30,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeHighlight, rehypeKatex]}
+        rehypePlugins={[rehypeKatex]}
         components={{
           code({
             className,
@@ -95,6 +93,7 @@ export default function ConversationPage() {
       ? {
           user: user.id,
           conversation: conversationId,
+          limit: 10,
         }
       : "skip",
   );
@@ -103,25 +102,39 @@ export default function ConversationPage() {
   const generateMessageMutation = useMutation(api.generate.generateMessage);
   const [loading, setLoading] = useState(true);
 
+  // Ref that always points to the bottom of the message list so we can scroll into view.
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Whenever the messages array changes, scroll to the sentinel element.
+  useLayoutEffect(() => {
+    if (bottomRef.current) {
+      // Instantly jump to the bottom without a smooth animation so the user starts there.
+      bottomRef.current.scrollIntoView({ behavior: "auto" });
+    }
+  }, [messages]);
+
   const messageList = useMemo(() => {
     if (!messages) return null;
 
     setLoading(false);
-    return messages.map((message) => (
-      <div
-        key={message._id}
-        className={`p-3 rounded-lg max-w-[80%] ${
-          message.role === "user"
-            ? "bg-blue-100 ml-auto text-right"
-            : "bg-gray-100 mr-auto"
-        }`}
-      >
-        <div className="text-xs text-gray-500 mb-1">
-          {message.role === "user" ? "You" : "Assistant"}
+    return messages
+      .slice()
+      .reverse()
+      .map((message) => (
+        <div
+          key={message._id}
+          className={`p-3 rounded-lg max-w-[80%] ${
+            message.role === "user"
+              ? "bg-blue-100 ml-auto text-right"
+              : "bg-gray-100 mr-auto"
+          }`}
+        >
+          <div className="text-xs text-gray-500 mb-1">
+            {message.role === "user" ? "You" : "Assistant"}
+          </div>
+          <ChatMessage content={message.content} />
         </div>
-        <ChatMessage content={message.content} />
-      </div>
-    ));
+      ));
   }, [messages]);
 
   const generateMessage = useCallback(async () => {
@@ -214,14 +227,9 @@ export default function ConversationPage() {
         ) : (
           messageList
         )}
+        {/* Sentinel div for automatic scroll-to-bottom */}
+        <div ref={bottomRef} />
       </div>
-      <InputArea
-        message={message}
-        setMessage={setMessage}
-        handleKeyPress={handleKeyPress}
-        user={user}
-        generateMessage={generateMessage}
-      />
     </div>
   );
 }
