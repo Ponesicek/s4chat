@@ -170,16 +170,6 @@ export default function ConversationPage() {
     }
   }, [initialMessage, user?.id, generateMessage, conversationId, router, message]);
 
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        generateMessage();
-      }
-    },
-    [generateMessage],
-  );
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full">
