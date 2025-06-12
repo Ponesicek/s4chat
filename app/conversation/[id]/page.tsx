@@ -20,63 +20,66 @@ interface ChatMessageProps {
   content: string;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ content }) => {
-  return (
-    <article
-      className="
-    prose sm:prose-sm md:prose-md lg:prose
-    flex flex-col gap-2 m-0 p-0
-  "
-    >
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          code({
-            className,
-            children,
-            ...props
-          }: React.HTMLProps<HTMLElement>) {
-            const match = /language-(\w+)/.exec(className || "");
-
-            // Extract text content from React elements
-            const getTextContent = (node: React.ReactNode): string => {
-              if (typeof node === "bigint") return "";
-              if (typeof node === "string") return node;
-              if (typeof node === "number") return String(node);
-              if (Array.isArray(node)) return node.map(getTextContent).join("");
-              if (typeof node === "object" && node !== null && "props" in node) {
-                return getTextContent(
-                  (node as React.ReactElement<{ children: React.ReactNode }>)
-                    .props.children,
-                );
-              }
-              return "";
-            };
-
-            const codeString = getTextContent(children);
-
-            return match ? (
-              <SyntaxHighlighter
-                style={oneLight}
-                language={match[1]}
-                PreTag="div"
-              >
-                {codeString.replace(/\n$/, "")}
-              </SyntaxHighlighter>
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
-          },
-        }}
+const ChatMessage = React.memo(
+  ({ content }: ChatMessageProps) => {
+    return (
+      <article
+        className="
+      prose sm:prose-sm md:prose-md lg:prose
+      flex flex-col gap-2 m-0 p-0
+    "
       >
-        {content}
-      </ReactMarkdown>
-    </article>
-  );
-};
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+          components={{
+            code({
+              className,
+              children,
+              ...props
+            }: React.HTMLProps<HTMLElement>) {
+              const match = /language-(\w+)/.exec(className || "");
+
+              // Extract text content from React elements
+              const getTextContent = (node: React.ReactNode): string => {
+                if (typeof node === "bigint") return "";
+                if (typeof node === "string") return node;
+                if (typeof node === "number") return String(node);
+                if (Array.isArray(node)) return node.map(getTextContent).join("");
+                if (typeof node === "object" && node !== null && "props" in node) {
+                  return getTextContent(
+                    (node as React.ReactElement<{ children: React.ReactNode }>)
+                      .props.children,
+                  );
+                }
+                return "";
+              };
+
+              const codeString = getTextContent(children);
+
+              return match ? (
+                <SyntaxHighlighter
+                  style={oneLight}
+                  language={match[1]}
+                  PreTag="div"
+                >
+                  {codeString.replace(/\n$/, "")}
+                </SyntaxHighlighter>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </article>
+    );
+  },
+  (prev, next) => prev.content === next.content,
+);
 
 export default function ConversationPage() {
   const { user } = useUser();
@@ -100,7 +103,7 @@ export default function ConversationPage() {
 
   const [message, setMessage] = useState(initialMessage);
   const generateMessageMutation = useMutation(api.generate.generateMessage);
-  const [loading, setLoading] = useState(true);
+  const loading = messages === undefined;
 
   // Ref that always points to the bottom of the message list so we can scroll into view.
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -116,10 +119,8 @@ export default function ConversationPage() {
   const messageList = useMemo(() => {
     if (!messages) return null;
 
-    setLoading(false);
     return messages
       .slice()
-      .reverse()
       .map((message) => (
         <div
           key={message._id}

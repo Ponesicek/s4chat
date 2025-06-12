@@ -4,7 +4,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
@@ -75,14 +75,13 @@ function ModelCard({
 
 export function ModelBrowser() {
   const models = useQuery(api.generate.GetModels, {});
-  const modelsMemo = useMemo(() => models, [models]);
   const [currentModel, setCurrentModel] = useState<string | null>(null);
   const currentModelID = Cookies.get("model");
   useEffect(() => {
     setCurrentModel(
-      modelsMemo?.find((model) => model._id === currentModelID)?.name ?? null,
+      models?.find((model) => model._id === currentModelID)?.name ?? null,
     );
-  }, [currentModelID, modelsMemo]);
+  }, [currentModelID, models]);
 
   /*
   const updateModels = useMutation(api.admin.updateModels);
@@ -137,7 +136,7 @@ export function ModelBrowser() {
           </div>
 
           <div className="max-h-96 overflow-y-auto">
-            {modelsMemo?.length === 0 ? (
+            {models?.length === 0 ? (
               <div className="p-6 text-center">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
                   <svg
@@ -160,7 +159,7 @@ export function ModelBrowser() {
               </div>
             ) : (
               <div className="p-3 space-y-2">
-                {modelsMemo?.map((model) => (
+                {models?.map((model) => (
                   <ModelCard
                     key={model._id}
                     name={model.name}

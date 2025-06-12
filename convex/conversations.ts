@@ -23,7 +23,7 @@ export const GetMessages = query({
     return await ctx.db
       .query("messages")
       .withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
-      .order("desc")
+      .order("asc")
       .take(limit);
   },
 });
