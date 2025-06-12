@@ -69,7 +69,7 @@ export function AppSidebar() {
                             : ""
                         }
                       >
-                        <span>{conversation.name}</span>
+                        <span className="flex-1 truncate">{conversation.name}</span>
                         <Button
                           variant="ghost"
                           size="icon"

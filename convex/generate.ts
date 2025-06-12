@@ -35,7 +35,6 @@ export const writeResponse = internalMutation({
       return await ctx.db.insert("messages", {
         user: args.user,
         content: args.content,
-        createdAt: Date.now(),
         model: args.model,
         conversation: args.conversation,
         role: "assistant",
@@ -61,7 +60,7 @@ export const generateMessageAction = internalAction({
       conversation: args.conversation,
     });
     const shouldGenerateName = messagesQuery.length === 1;
-    let messagesHistory: { role: "user" | "assistant"; content: string }[] = [];
+    const messagesHistory: { role: "user" | "assistant"; content: string }[] = [];
     for (const message of messagesQuery.reverse()) {
       if (message.role === "user") {
         messagesHistory.push({ role: "user", content: message.content });
@@ -153,7 +152,6 @@ export const generateMessage = mutation({
     await ctx.db.insert("messages", {
       user: args.user,
       content: args.content,
-      createdAt: Date.now(),
       model: model._id,
       conversation: args.conversation,
       role: "user",

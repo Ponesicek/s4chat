@@ -9,7 +9,6 @@ export default defineSchema({
   messages: defineTable({
     user: v.string(),
     content: v.string(),
-    createdAt: v.number(),
     model: v.id("models"),
     conversation: v.id("conversations"),
     role: v.union(v.literal("user"), v.literal("assistant")),
@@ -20,7 +19,7 @@ export default defineSchema({
     description: v.string(),
     input_modalities: v.array(v.string()),
     output_modalities: v.array(v.string()),
-    createdAt: v.string(),
+    created_at: v.string(),
     author: v.string(),
     context_length: v.number(),
     reasoning: v.boolean(),
@@ -35,7 +34,6 @@ export default defineSchema({
   }),
   conversations: defineTable({
     user: v.string(),
-    createdAt: v.number(),
     name: v.string(),
     tags: v.array(v.string()),
   }).index("by_user", ["user"]),

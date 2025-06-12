@@ -12,7 +12,6 @@ export const GetMessages = query({
       _creationTime: v.number(),
       user: v.string(),
       content: v.string(),
-      createdAt: v.number(),
       model: v.id("models"),
       conversation: v.id("conversations"),
       role: v.union(v.literal("user"), v.literal("assistant")),
@@ -36,7 +35,6 @@ export const GetConversations = query({
       _id: v.id("conversations"),
       _creationTime: v.number(),
       user: v.string(),
-      createdAt: v.number(),
       name: v.string(),
       tags: v.array(v.string()),
     }),
@@ -61,7 +59,6 @@ export const CreateConversation = mutation({
     }
     return await ctx.db.insert("conversations", {
       user: args.user,
-      createdAt: Date.now(),
       name: "New Conversation",
       tags: [],
     });
