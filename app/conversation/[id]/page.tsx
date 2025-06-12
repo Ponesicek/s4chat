@@ -81,6 +81,8 @@ const ChatMessage = React.memo(
   (prev, next) => prev.content === next.content,
 );
 
+ChatMessage.displayName = "ChatMessage";
+
 export default function ConversationPage() {
   const { user } = useUser();
   const { id } = useParams();
