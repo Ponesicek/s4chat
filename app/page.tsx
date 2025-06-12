@@ -32,7 +32,7 @@ export default function Home() {
 function SignInForm() {
   return (
     <div className="flex flex-col gap-8 w-full max-w-lg mx-auto p-8">
-      <p>Log in to see the numbers</p>
+      <p>To start a conversation, please sign in or sign up.</p>
       <SignInButton mode="modal">
         <button className="bg-foreground text-background px-4 py-2 rounded-md">
           Sign in
