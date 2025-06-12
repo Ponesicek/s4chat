@@ -15,7 +15,6 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "./ui/button";
-import Cookies from "js-cookie";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -26,18 +25,9 @@ export function AppSidebar() {
   const conversations = useQuery(api.conversations.GetConversations, {
     user: user?.id ?? "",
   });
-  const createConversationMutation = useMutation(
-    api.conversations.CreateConversation,
-  );
   const deleteConversationMutation = useMutation(
     api.conversations.DeleteConversation,
   );
-  const createConversation = async () => {
-    const conversationId = await createConversationMutation({
-      user: user?.id ?? "",
-    });
-    Cookies.set("conversation", conversationId);
-  };
 
   return (
     <Sidebar>
@@ -49,7 +39,9 @@ export function AppSidebar() {
           >
             <Link href="/">S4 Chat</Link>
           </SidebarGroupLabel>
-          <Button onClick={createConversation}>New Chat</Button>
+          <Button asChild>
+            <Link href="/">New Chat</Link>
+          </Button>
         </SidebarGroup>
       </SidebarHeader>
       <SidebarContent>

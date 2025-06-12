@@ -1,11 +1,11 @@
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { InputArea } from "@/components/InputArea";
 import React from "react";
@@ -86,6 +86,8 @@ export default function ConversationPage() {
   const conversationId = id as Id<"conversations">;
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get("message") ?? "";
+  const router = useRouter();
+
 
   const messages = useQuery(
     api.conversations.GetMessages,
@@ -124,21 +126,36 @@ export default function ConversationPage() {
 
   const generateMessage = useCallback(async () => {
     if (!message.trim() || !user?.id) return;
-
-    setMessage("");
+    
     let model = Cookies.get("model");
     if (!model) {
       Cookies.set("model", "google/gemini-2.0-flash-001");
       model = "google/gemini-2.0-flash-001";
     }
-
+    
     await generateMessageMutation({
       user: user.id,
       content: message.trim(),
       model: model as Id<"models">,
       conversation: conversationId,
     });
+    setMessage("");
   }, [message, user?.id, generateMessageMutation, conversationId]);
+
+  // Send the initial message only once (when present in URL) and then remove the query param.
+  const initialMessageSentRef = useRef(false);
+  useEffect(() => {
+    if (
+      !initialMessageSentRef.current &&
+      initialMessage &&
+      user?.id &&
+      message === initialMessage
+    ) {
+      initialMessageSentRef.current = true;
+      generateMessage();
+      router.replace(`/conversation/${conversationId}`);
+    }
+  }, [initialMessage, user?.id, generateMessage, conversationId, router, message]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
