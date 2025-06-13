@@ -3,9 +3,9 @@
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, usePaginatedQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useState, useMemo, useCallback, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from "react";
 import Cookies from "js-cookie";
 import React from "react";
 import ReactMarkdown from "react-markdown";
@@ -20,68 +20,39 @@ interface ChatMessageProps {
   content: string;
 }
 
-const ChatMessage = React.memo(
-  ({ content }: ChatMessageProps) => {
-    return (
-      <article
-        className="
-      prose sm:prose-sm md:prose-md lg:prose
-      flex flex-col gap-2 m-0 p-0
-    "
+const ChatMessage = ({ content }: ChatMessageProps) => {
+  return (
+    <article className="prose sm:prose-sm md:prose-md lg:prose flex flex-col gap-2 m-0 p-0">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          code({ className, children, ...props }: React.HTMLProps<HTMLElement>) {
+            const match = /language-(\w+)/.exec(className || "");
+            
+            const codeString = String(children).replace(/\n$/, "");
+
+            return match ? (
+              <SyntaxHighlighter
+                style={oneLight}
+                language={match[1]}
+                PreTag="div"
+              >
+                {codeString}
+              </SyntaxHighlighter>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
       >
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-          components={{
-            code({
-              className,
-              children,
-              ...props
-            }: React.HTMLProps<HTMLElement>) {
-              const match = /language-(\w+)/.exec(className || "");
-
-              // Extract text content from React elements
-              const getTextContent = (node: React.ReactNode): string => {
-                if (typeof node === "bigint") return "";
-                if (typeof node === "string") return node;
-                if (typeof node === "number") return String(node);
-                if (Array.isArray(node)) return node.map(getTextContent).join("");
-                if (typeof node === "object" && node !== null && "props" in node) {
-                  return getTextContent(
-                    (node as React.ReactElement<{ children: React.ReactNode }>)
-                      .props.children,
-                  );
-                }
-                return "";
-              };
-
-              const codeString = getTextContent(children);
-
-              return match ? (
-                <SyntaxHighlighter
-                  style={oneLight}
-                  language={match[1]}
-                  PreTag="div"
-                >
-                  {codeString.replace(/\n$/, "")}
-                </SyntaxHighlighter>
-              ) : (
-                <code className={className} {...props}>
-                  {children}
-                </code>
-              );
-            },
-          }}
-        >
-          {content}
-        </ReactMarkdown>
-      </article>
-    );
-  },
-  (prev, next) => prev.content === next.content,
-);
-
-ChatMessage.displayName = "ChatMessage";
+        {content}
+      </ReactMarkdown>
+    </article>
+  );
+};
 
 export default function ConversationPage() {
   const { user } = useUser();
@@ -90,63 +61,65 @@ export default function ConversationPage() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get("message") ?? "";
   const router = useRouter();
-
-
-  const messages = useQuery(
-    api.conversations.GetMessages,
-    user?.id && conversationId
-      ? {
-          user: user.id,
-          conversation: conversationId,
-          limit: 10,
-        }
-      : "skip",
+  const [FirstLoad, setFirstLoad] = useState(true);
+  
+  const {results: messages, status, loadMore} = usePaginatedQuery(
+    api.conversations.GetMessagesPaginated,
+    {
+      user: user?.id || "",
+      conversation: conversationId,
+    },
+      {
+        initialNumItems: 5,
+      }
   );
 
   const [message, setMessage] = useState(initialMessage);
   const generateMessageMutation = useMutation(api.generate.generateMessage);
-  const loading = messages === undefined;
+  const loading = status === "LoadingFirstPage";
 
-  // Ref that always points to the bottom of the message list so we can scroll into view.
   const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevScrollHeightRef = useRef<number>(0);
+  const autoFillTriggeredRef = useRef(false);
 
-  // Whenever the messages array changes, scroll to the sentinel element.
   useLayoutEffect(() => {
-    if (bottomRef.current) {
-      // Instantly jump to the bottom without a smooth animation so the user starts there.
-      bottomRef.current.scrollIntoView({ behavior: "auto" });
+      const container = containerRef.current;
+      if (!container) return;
+
+      if (
+        prevScrollHeightRef.current &&
+        container.scrollHeight > prevScrollHeightRef.current
+      ) {
+        const diff = container.scrollHeight - prevScrollHeightRef.current;
+        container.scrollTop = diff;
+        // Reset only after we've actually added new content.
+        prevScrollHeightRef.current = 0;
+      } else {
+        if (bottomRef.current && messages.length > 0 && FirstLoad) {
+          setFirstLoad(false);
+          bottomRef.current.scrollIntoView({ behavior: "auto" });
+        }
+      }
+  }, [messages, FirstLoad]);
+
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (container.scrollTop <= 0 && status === "CanLoadMore" && prevScrollHeightRef.current === 0) {
+      // Capture height only once per pagination request so we can restore view after load.
+      prevScrollHeightRef.current = container.scrollHeight;
+      loadMore(5);
     }
-  }, [messages]);
-
-  const messageList = useMemo(() => {
-    if (!messages) return null;
-
-    return messages
-      .slice()
-      .map((message) => (
-        <div
-          key={message._id}
-          className={`p-3 rounded-lg max-w-[80%] ${
-            message.role === "user"
-              ? "bg-blue-100 ml-auto text-right"
-              : "bg-gray-100 mr-auto"
-          }`}
-        >
-          <div className="text-xs text-gray-500 mb-1">
-            {message.role === "user" ? "You" : "Assistant"}
-          </div>
-          <ChatMessage content={message.content} />
-        </div>
-      ));
-  }, [messages]);
+  }, [status, loadMore]);
 
   const generateMessage = useCallback(async () => {
     if (!message.trim() || !user?.id) return;
     
-    let model = Cookies.get("model");
-    if (!model) {
-      Cookies.set("model", "google/gemini-2.0-flash-001");
-      model = "google/gemini-2.0-flash-001";
+    const model = Cookies.get("model") || "google/gemini-2.0-flash-001";
+    if (!Cookies.get("model")) {
+      Cookies.set("model", model);
     }
     
     await generateMessageMutation({
@@ -158,7 +131,6 @@ export default function ConversationPage() {
     setMessage("");
   }, [message, user?.id, generateMessageMutation, conversationId]);
 
-  // Send the initial message only once (when present in URL) and then remove the query param.
   const initialMessageSentRef = useRef(false);
   useEffect(() => {
     if (
@@ -172,6 +144,41 @@ export default function ConversationPage() {
       router.replace(`/conversation/${conversationId}`);
     }
   }, [initialMessage, user?.id, generateMessage, conversationId, router, message]);
+
+  // NEW EFFECT: ensure initial render fills the viewport by loading more messages if needed
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // If the content height is not enough to allow scrolling and we can load more, fetch more messages
+    if (
+      container.scrollHeight <= container.clientHeight &&
+      status === "CanLoadMore"
+    ) {
+      autoFillTriggeredRef.current = true; // remember that we triggered auto-fill
+      loadMore(5);
+    }
+  }, [messages, status, loadMore]);
+
+  // Once the additional messages have been loaded, jump the user to the bottom of the chat
+  useEffect(() => {
+    if (!autoFillTriggeredRef.current) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // When we have enough messages to scroll, teleport to bottom and reset the flag
+    if (container.scrollHeight > container.clientHeight) {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: "auto" });
+      }
+      autoFillTriggeredRef.current = false;
+    }
+  }, [messages]);
+
+  if (!(user?.id && conversationId)) {
+    return <div>Invalid conversation</div>;
+  }
 
   if (!user) {
     return (
@@ -196,10 +203,15 @@ export default function ConversationPage() {
       </div>
     );
   }
+
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-8rem)]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages === undefined ? (
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
+        {!messages ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
@@ -218,9 +230,22 @@ export default function ConversationPage() {
             </div>
           </div>
         ) : (
-          messageList
+          messages.slice().reverse().map((msg) => (
+            <div
+              key={msg._id}
+              className={`p-3 rounded-lg max-w-[80%] ${
+                msg.role === "user"
+                  ? "bg-blue-100 ml-auto text-right"
+                  : "bg-gray-100 mr-auto"
+              }`}
+            >
+              <div className="text-xs text-gray-500 mb-1">
+                {msg.role === "user" ? "You" : "Assistant"}
+              </div>
+              <ChatMessage content={msg.content} />
+            </div>
+          ))
         )}
-        {/* Sentinel div for automatic scroll-to-bottom */}
         <div ref={bottomRef} />
       </div>
     </div>

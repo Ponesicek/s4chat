@@ -1,30 +1,74 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
+
+export const GetMessagesPaginated = query({
+  args: {
+    user: v.string(),
+    conversation: v.id("conversations"),
+    paginationOpts: paginationOptsValidator,
+  },
+  returns: v.object({
+    page: v.array(
+      v.object({
+        _id: v.id("messages"),
+        _creationTime: v.number(),
+        user: v.string(),
+        content: v.string(),
+        model: v.id("models"),
+        conversation: v.id("conversations"),
+        role: v.union(v.literal("user"), v.literal("assistant")),
+      }),
+    ),
+    isDone: v.boolean(),
+    continueCursor: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversation);
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+    if (conversation.user !== args.user) {
+      throw new Error("User not authorized to access this conversation");
+    }
+    const result = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
+      .order("desc")
+      .paginate(args.paginationOpts);
+    return {
+      page: result.page,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
 
 export const GetMessages = query({
   args: {
     user: v.string(),
     conversation: v.id("conversations"),
-    limit: v.optional(v.number()),
   },
   returns: v.array(
-    v.object({
-      _id: v.id("messages"),
-      _creationTime: v.number(),
-      user: v.string(),
-      content: v.string(),
-      model: v.id("models"),
-      conversation: v.id("conversations"),
-      role: v.union(v.literal("user"), v.literal("assistant")),
-    }),
-  ),
+      v.object({
+        _id: v.id("messages"),
+        _creationTime: v.number(),
+        user: v.string(),
+        content: v.string(),
+        model: v.id("models"),
+        conversation: v.id("conversations"),
+        role: v.union(v.literal("user"), v.literal("assistant")),
+      }),
+    ),
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 40;
-    return await ctx.db
-      .query("messages")
-      .withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
-      .order("asc")
-      .take(limit);
+    const conversation = await ctx.db.get(args.conversation);
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+    if (conversation.user !== args.user) {
+      throw new Error("User not authorized to access this conversation");
+    }
+    return await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", args.conversation)).order("asc").take(40);
   },
 });
 
