@@ -12,8 +12,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/prism";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import CodeBlock from "@/components/CodeBlock";
 import "katex/dist/katex.min.css";
 
 interface ChatMessageProps {
@@ -22,24 +21,25 @@ interface ChatMessageProps {
 
 const ChatMessage = ({ content }: ChatMessageProps) => {
   return (
-    <article className="prose sm:prose-sm md:prose-md lg:prose flex flex-col gap-2 m-0 p-0">
+    <article className="prose sm:prose-sm md:prose-md lg:prose flex flex-col gap-2">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
+          pre({ children }: React.HTMLProps<HTMLPreElement>) {
+            return (
+              <div className="not-prose">
+                {children}
+              </div>
+            );
+          },
           code({ className, children, ...props }: React.HTMLProps<HTMLElement>) {
             const match = /language-(\w+)/.exec(className || "");
             
             const codeString = String(children).replace(/\n$/, "");
 
             return match ? (
-              <SyntaxHighlighter
-                style={oneLight}
-                language={match[1]}
-                PreTag="div"
-              >
-                {codeString}
-              </SyntaxHighlighter>
+                <CodeBlock language={match[1]} code={codeString} />
             ) : (
               <code className={className} {...props}>
                 {children}
@@ -93,7 +93,6 @@ export default function ConversationPage() {
       ) {
         const diff = container.scrollHeight - prevScrollHeightRef.current;
         container.scrollTop = diff;
-        // Reset only after we've actually added new content.
         prevScrollHeightRef.current = 0;
       } else {
         if (bottomRef.current && messages.length > 0 && FirstLoad) {
@@ -108,7 +107,6 @@ export default function ConversationPage() {
     if (!container) return;
 
     if (container.scrollTop <= 0 && status === "CanLoadMore" && prevScrollHeightRef.current === 0) {
-      // Capture height only once per pagination request so we can restore view after load.
       prevScrollHeightRef.current = container.scrollHeight;
       loadMore(5);
     }
@@ -145,29 +143,25 @@ export default function ConversationPage() {
     }
   }, [initialMessage, user?.id, generateMessage, conversationId, router, message]);
 
-  // NEW EFFECT: ensure initial render fills the viewport by loading more messages if needed
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // If the content height is not enough to allow scrolling and we can load more, fetch more messages
     if (
       container.scrollHeight <= container.clientHeight &&
       status === "CanLoadMore"
     ) {
-      autoFillTriggeredRef.current = true; // remember that we triggered auto-fill
+      autoFillTriggeredRef.current = true;
       loadMore(5);
     }
   }, [messages, status, loadMore]);
 
-  // Once the additional messages have been loaded, jump the user to the bottom of the chat
   useEffect(() => {
     if (!autoFillTriggeredRef.current) return;
 
     const container = containerRef.current;
     if (!container) return;
 
-    // When we have enough messages to scroll, teleport to bottom and reset the flag
     if (container.scrollHeight > container.clientHeight) {
       if (bottomRef.current) {
         bottomRef.current.scrollIntoView({ behavior: "auto" });
