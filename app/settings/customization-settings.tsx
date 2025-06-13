@@ -183,7 +183,7 @@ export function CustomizationSettings() {
         </div>
         <RadioGroup
           value={colorScheme}
-          onValueChange={(value) => setColorScheme(value as any)}
+          onValueChange={(value) => setColorScheme(value as "default" | "gruvbox" | "solarized" | "catpuccin" | "nord")}
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2"
         >
 
