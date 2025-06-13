@@ -60,7 +60,8 @@ export const generateMessageAction = internalAction({
       conversation: args.conversation,
     });
     const shouldGenerateName = messagesQuery.length === 1;
-    const messagesHistory: { role: "user" | "assistant"; content: string }[] = [];
+    const messagesHistory: { role: "user" | "assistant"; content: string }[] =
+      [];
     for (const message of messagesQuery.reverse()) {
       if (message.role === "user") {
         messagesHistory.push({ role: "user", content: message.content });

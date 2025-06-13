@@ -118,7 +118,33 @@
 
 /* Color Schemes - Light Mode */
 .default {
-  /* Default theme - uses the existing root colors */
+  /* GitHub Light */
+  --background: #ffffff; /* github white */
+  --foreground: #1f2328; /* github fg default */
+  --card: #f6f8fa; /* github canvas subtle */
+  --card-foreground: #1f2328;
+  --popover: #ffffff;
+  --popover-foreground: #1f2328;
+  --primary: #0969da; /* github accent emphasis */
+  --primary-foreground: #ffffff;
+  --secondary: #f6f8fa; /* github canvas subtle */
+  --secondary-foreground: #656d76;
+  --muted: #f6f8fa;
+  --muted-foreground: #656d76; /* github fg muted */
+  --accent: #0969da; /* github accent emphasis */
+  --accent-foreground: #ffffff;
+  --destructive: #d1242f; /* github danger emphasis */
+  --border: #d1d9e0; /* github border default */
+  --input: #f6f8fa;
+  --ring: #0969da;
+  --sidebar: #f6f8fa;
+  --sidebar-foreground: #1f2328;
+  --sidebar-primary: #0969da;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f6f8fa;
+  --sidebar-accent-foreground: #1f2328;
+  --sidebar-border: #d1d9e0;
+  --sidebar-ring: #0969da;
 }
 
 .gruvbox {
@@ -242,6 +268,36 @@
 }
 
 /* Dark Mode Variants */
+.dark.default {
+  /* GitHub Dark */
+  --background: #0d1117; /* github canvas default */
+  --foreground: #e6edf3; /* github fg default */
+  --card: #161b22; /* github canvas subtle */
+  --card-foreground: #e6edf3;
+  --popover: #161b22;
+  --popover-foreground: #e6edf3;
+  --primary: #4493f8; /* github accent emphasis */
+  --primary-foreground: #0d1117;
+  --secondary: #21262d; /* github canvas inset */
+  --secondary-foreground: #e6edf3;
+  --muted: #21262d;
+  --muted-foreground: #7d8590; /* github fg muted */
+  --accent: #4493f8; /* github accent emphasis */
+  --accent-foreground: #0d1117;
+  --destructive: #f85149; /* github danger emphasis */
+  --border: #21262d; /* github border default - made more subtle */
+  --input: #21262d;
+  --ring: #4493f8;
+  --sidebar: #161b22;
+  --sidebar-foreground: #e6edf3;
+  --sidebar-primary: #4493f8;
+  --sidebar-primary-foreground: #0d1117;
+  --sidebar-accent: #21262d;
+  --sidebar-accent-foreground: #e6edf3;
+  --sidebar-border: #21262d;
+  --sidebar-ring: #4493f8;
+}
+
 .dark.gruvbox {
   /* Gruvbox Dark */
   --background: #1d2021; /* gruvbox bg0_h */
@@ -259,7 +315,7 @@
   --accent: #fabd2f; /* gruvbox yellow bright */
   --accent-foreground: #1d2021;
   --destructive: #fb4934; /* gruvbox red bright */
-  --border: #665c54; /* gruvbox bg3 */
+  --border: #504945; /* gruvbox bg2 - made more subtle */
   --input: #504945;
   --ring: #fe8019;
   --sidebar: #282828;
@@ -268,7 +324,7 @@
   --sidebar-primary-foreground: #1d2021;
   --sidebar-accent: #3c3836;
   --sidebar-accent-foreground: #ebdbb2;
-  --sidebar-border: #665c54;
+  --sidebar-border: #504945;
   --sidebar-ring: #fe8019;
 }
 
@@ -289,7 +345,7 @@
   --accent: #2aa198; /* solarized cyan */
   --accent-foreground: #002b36;
   --destructive: #dc322f; /* solarized red */
-  --border: #586e75;
+  --border: #073642; /* solarized base02 - made more subtle */
   --input: #073642;
   --ring: #268bd2;
   --sidebar: #073642;
@@ -298,7 +354,7 @@
   --sidebar-primary-foreground: #002b36;
   --sidebar-accent: #586e75;
   --sidebar-accent-foreground: #93a1a1;
-  --sidebar-border: #586e75;
+  --sidebar-border: #073642;
   --sidebar-ring: #268bd2;
 }
 
@@ -319,7 +375,7 @@
   --accent: #f5c2e7; /* mocha pink */
   --accent-foreground: #1e1e2e;
   --destructive: #f38ba8; /* mocha red */
-  --border: #585b70; /* mocha surface2 */
+  --border: #45475a; /* mocha surface1 - made more subtle */
   --input: #313244;
   --ring: #cba6f7;
   --sidebar: #181825;
@@ -328,7 +384,7 @@
   --sidebar-primary-foreground: #1e1e2e;
   --sidebar-accent: #313244;
   --sidebar-accent-foreground: #cdd6f4;
-  --sidebar-border: #585b70;
+  --sidebar-border: #45475a;
   --sidebar-ring: #cba6f7;
 }
 
@@ -349,7 +405,7 @@
   --accent: #88c0d0; /* frost light */
   --accent-foreground: #2e3440;
   --destructive: #bf616a; /* aurora red */
-  --border: #4c566a;
+  --border: #434c5e; /* polar night - made more subtle */
   --input: #434c5e;
   --ring: #81a1c1;
   --sidebar: #3b4252;
@@ -358,7 +414,7 @@
   --sidebar-primary-foreground: #2e3440;
   --sidebar-accent: #434c5e;
   --sidebar-accent-foreground: #eceff4;
-  --sidebar-border: #4c566a;
+  --sidebar-border: #434c5e;
   --sidebar-ring: #81a1c1;
 }
 

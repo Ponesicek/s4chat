@@ -24,22 +24,22 @@ export function ProfileSidebarFooter() {
 
   return (
     <Link href="/settings" className="w-full">
-    <button
-      type="button"
-      className="flex items-center gap-3 w-full rounded-md p-3 mb-1 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
-    >
-      <span className="pointer-events-none flex items-center justify-center">
-        <UserButton />
-      </span>
-      <div className="flex flex-col overflow-hidden text-left">
-        <span className="text-sm font-medium leading-none truncate">
-          {user?.username}
+      <button
+        type="button"
+        className="flex items-center gap-3 w-full rounded-md p-3 mb-1 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        <span className="pointer-events-none flex items-center justify-center">
+          <UserButton />
         </span>
-        <span className="text-xs text-muted-foreground truncate max-w-[160px]">
-          {user?.emailAddresses?.[0]?.emailAddress}
-        </span>
-      </div>
-    </button>
+        <div className="flex flex-col overflow-hidden text-left">
+          <span className="text-sm font-medium leading-none truncate">
+            {user?.username}
+          </span>
+          <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+            {user?.emailAddresses?.[0]?.emailAddress}
+          </span>
+        </div>
+      </button>
     </Link>
   );
 }
@@ -87,7 +87,9 @@ export function AppSidebar() {
                             : ""
                         }
                       >
-                        <span className="flex-1 truncate">{conversation.name}</span>
+                        <span className="flex-1 truncate">
+                          {conversation.name}
+                        </span>
                         <Button
                           variant="ghost"
                           size="icon"

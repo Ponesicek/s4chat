@@ -1,27 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
-import { useTheme } from "next-themes"
-import { useColorScheme } from "@/hooks/use-color-scheme"
+import { useState, useEffect } from "react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export function CustomizationSettings() {
-  const { theme, setTheme } = useTheme()
-  const { colorScheme, setColorScheme, mounted: colorSchemeMounted } = useColorScheme()
-  const [mounted, setMounted] = useState(false)
-  const [fontFamily, setFontFamily] = useState("inter")
-  const [fontSize, setFontSize] = useState("medium")
-  const [reducedMotion, setReducedMotion] = useState(false)
+  const { theme, setTheme } = useTheme();
+  const {
+    colorScheme,
+    setColorScheme,
+    mounted: colorSchemeMounted,
+  } = useColorScheme();
+  const [mounted, setMounted] = useState(false);
+  const [fontFamily, setFontFamily] = useState("inter");
+  const [fontSize, setFontSize] = useState("medium");
 
-  // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted || !colorSchemeMounted) {
     return (
@@ -29,7 +36,9 @@ export function CustomizationSettings() {
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-medium">Theme</h3>
-            <p className="text-sm text-muted-foreground">Choose your preferred color mode.</p>
+            <p className="text-sm text-muted-foreground">
+              Choose your preferred color mode.
+            </p>
           </div>
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-3">
@@ -112,7 +121,7 @@ export function CustomizationSettings() {
           <Button disabled>Save Changes</Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -120,11 +129,13 @@ export function CustomizationSettings() {
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Theme</h3>
-          <p className="text-sm text-muted-foreground">Choose your preferred color mode.</p>
+          <p className="text-sm text-muted-foreground">
+            Choose your preferred color mode.
+          </p>
         </div>
         <div className="grid gap-2">
           <div className="grid grid-cols-3 gap-3">
-                        <Button
+            <Button
               variant={theme === "light" ? "default" : "outline"}
               className="justify-start px-3 h-auto py-8 border overflow-hidden relative"
               onClick={() => setTheme("light")}
@@ -145,7 +156,10 @@ export function CustomizationSettings() {
               onClick={() => setTheme("dark")}
             >
               {/* Dark theme preview background - simulate dark mode */}
-              <div className="absolute inset-0" style={{backgroundColor: 'var(--background)'}}></div>
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: "var(--background)" }}
+              ></div>
               <div className="absolute inset-0 bg-slate-900"></div>
               <div className="relative w-full space-y-2 text-left z-10">
                 <div className="space-y-1">
@@ -179,16 +193,30 @@ export function CustomizationSettings() {
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Color Scheme</h3>
-          <p className="text-sm text-muted-foreground">Select your preferred accent color.</p>
+          <p className="text-sm text-muted-foreground">
+            Select your preferred accent color.
+          </p>
         </div>
         <RadioGroup
           value={colorScheme}
-          onValueChange={(value) => setColorScheme(value as "default" | "gruvbox" | "solarized" | "catpuccin" | "nord")}
+          onValueChange={(value) =>
+            setColorScheme(
+              value as
+                | "default"
+                | "gruvbox"
+                | "solarized"
+                | "catpuccin"
+                | "nord",
+            )
+          }
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2"
         >
-
           <div>
-            <RadioGroupItem value="default" id="default" className="sr-only peer" />
+            <RadioGroupItem
+              value="default"
+              id="default"
+              className="sr-only peer"
+            />
             <Label
               htmlFor="default"
               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
@@ -199,7 +227,11 @@ export function CustomizationSettings() {
           </div>
 
           <div>
-            <RadioGroupItem value="gruvbox" id="gruvbox" className="sr-only peer" />
+            <RadioGroupItem
+              value="gruvbox"
+              id="gruvbox"
+              className="sr-only peer"
+            />
             <Label
               htmlFor="gruvbox"
               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
@@ -209,7 +241,11 @@ export function CustomizationSettings() {
             </Label>
           </div>
           <div>
-            <RadioGroupItem value="solarized" id="solarized" className="sr-only peer" />
+            <RadioGroupItem
+              value="solarized"
+              id="solarized"
+              className="sr-only peer"
+            />
             <Label
               htmlFor="solarized"
               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
@@ -219,7 +255,11 @@ export function CustomizationSettings() {
             </Label>
           </div>
           <div>
-            <RadioGroupItem value="catpuccin" id="catpuccin" className="sr-only peer" />
+            <RadioGroupItem
+              value="catpuccin"
+              id="catpuccin"
+              className="sr-only peer"
+            />
             <Label
               htmlFor="catpuccin"
               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
@@ -246,7 +286,9 @@ export function CustomizationSettings() {
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Typography</h3>
-          <p className="text-sm text-muted-foreground">Customize the font settings.</p>
+          <p className="text-sm text-muted-foreground">
+            Customize the font settings.
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -278,26 +320,6 @@ export function CustomizationSettings() {
           </div>
         </div>
       </div>
-
-      <Separator />
-
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Accessibility</h3>
-          <p className="text-sm text-muted-foreground">Adjust settings for a better accessible experience.</p>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="reduced-motion">Reduced Motion</Label>
-            <p className="text-sm text-muted-foreground">Minimize non-essential animations.</p>
-          </div>
-          <Switch id="reduced-motion" checked={reducedMotion} onCheckedChange={setReducedMotion} />
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <Button>Save Changes</Button>
-      </div>
     </div>
-  )
+  );
 }

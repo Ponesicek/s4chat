@@ -25,11 +25,11 @@ export function useColorScheme() {
     document.documentElement.classList.remove(
       "default",
       "gruvbox",
-      "solarized", 
+      "solarized",
       "catpuccin",
-      "nord"
+      "nord",
     );
-    
+
     // Add new color scheme class
     document.documentElement.classList.add(scheme);
   };
@@ -45,4 +45,4 @@ export function useColorScheme() {
     setColorScheme: updateColorScheme,
     mounted,
   };
-} 
+}

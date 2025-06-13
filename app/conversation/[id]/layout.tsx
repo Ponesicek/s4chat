@@ -10,12 +10,16 @@ import Cookies from "js-cookie";
 
 import { InputArea } from "@/components/InputArea";
 
-export default function ConversationLayout({ children }: { children: ReactNode }) {
-  const { id } = useParams();                     // updates when you switch convo
+export default function ConversationLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const { id } = useParams(); // updates when you switch convo
   const conversationId = id as Id<"conversations">;
   const { user } = useUser();
 
-  const [draft, setDraft] = useState("");         // stays mounted → preserved
+  const [draft, setDraft] = useState(""); // stays mounted → preserved
   const sendMutation = useMutation(api.generate.generateMessage);
 
   const sendMessage = useCallback(async () => {

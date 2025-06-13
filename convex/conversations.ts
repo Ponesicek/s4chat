@@ -33,7 +33,9 @@ export const GetMessagesPaginated = query({
     }
     const result = await ctx.db
       .query("messages")
-      .withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversation", args.conversation),
+      )
       .order("desc")
       .paginate(args.paginationOpts);
     return {
@@ -85,10 +87,12 @@ export const GetMessagesPaginatedWithModels = query({
     }
     const result = await ctx.db
       .query("messages")
-      .withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversation", args.conversation),
+      )
       .order("desc")
       .paginate(args.paginationOpts);
-    
+
     // Fetch model information for each message
     const messagesWithModels = await Promise.all(
       result.page.map(async (message) => {
@@ -106,9 +110,9 @@ export const GetMessagesPaginatedWithModels = query({
             provider: model.provider,
           },
         };
-      })
+      }),
     );
-    
+
     return {
       page: messagesWithModels,
       isDone: result.isDone,
@@ -123,16 +127,16 @@ export const GetMessages = query({
     conversation: v.id("conversations"),
   },
   returns: v.array(
-      v.object({
-        _id: v.id("messages"),
-        _creationTime: v.number(),
-        user: v.string(),
-        content: v.string(),
-        model: v.id("models"),
-        conversation: v.id("conversations"),
-        role: v.union(v.literal("user"), v.literal("assistant")),
-      }),
-    ),
+    v.object({
+      _id: v.id("messages"),
+      _creationTime: v.number(),
+      user: v.string(),
+      content: v.string(),
+      model: v.id("models"),
+      conversation: v.id("conversations"),
+      role: v.union(v.literal("user"), v.literal("assistant")),
+    }),
+  ),
   handler: async (ctx, args) => {
     const conversation = await ctx.db.get(args.conversation);
     if (!conversation) {
@@ -141,7 +145,13 @@ export const GetMessages = query({
     if (conversation.user !== args.user) {
       throw new Error("User not authorized to access this conversation");
     }
-    return await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", args.conversation)).order("asc").take(40);
+    return await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversation", args.conversation),
+      )
+      .order("asc")
+      .take(40);
   },
 });
 

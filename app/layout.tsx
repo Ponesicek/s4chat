@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/sidebar";
 import { ThemeProvider } from "next-themes";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -46,10 +45,10 @@ export default function RootLayout({
               <SidebarProvider defaultOpen={true}>
                 <AppSidebar />
                 <SidebarInset>
-                                  <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                  <SidebarTrigger className="-ml-1" />
-                  <div className="flex-1 text-lg font-semibold">S4 Chat</div>
-                </header>
+                  <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                    <SidebarTrigger className="-ml-1" />
+                    <div className="flex-1 text-lg font-semibold">S4 Chat</div>
+                  </header>
                   <main className="flex flex-1 flex-col gap-4 p-4">
                     {children}
                   </main>
@@ -57,7 +56,7 @@ export default function RootLayout({
               </SidebarProvider>
             </ConvexClientProvider>
           </ClerkProvider>
-          </ThemeProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
