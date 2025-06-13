@@ -47,21 +47,16 @@ const CodeBlock = React.memo(function CodeBlock({
   const [highlightedHtml, setHighlightedHtml] = useState<string>(
     cachedResult || "",
   );
-  const [isHighlighting, setIsHighlighting] = useState(false);
 
   useEffect(() => {
     if (cachedResult) {
       setHighlightedHtml(cachedResult);
-      setIsHighlighting(false);
       return;
     }
 
     if (!mounted) {
-      setIsHighlighting(false);
       return;
     }
-
-    setIsHighlighting(true);
 
     const highlightCode = async () => {
       try {
@@ -82,7 +77,6 @@ const CodeBlock = React.memo(function CodeBlock({
 
         highlightCache.set(cacheKey, html);
         setHighlightedHtml(html);
-        setIsHighlighting(false);
       } catch (error) {
         console.warn(
           `Failed to highlight code with theme '${getShikiTheme(colorScheme, resolvedTheme === "dark")}' for language '${language}':`,
@@ -113,7 +107,6 @@ const CodeBlock = React.memo(function CodeBlock({
           highlightCache.set(cacheKey, fallbackHtml);
           setHighlightedHtml(fallbackHtml);
         }
-        setIsHighlighting(false);
       }
     };
 
@@ -128,7 +121,7 @@ const CodeBlock = React.memo(function CodeBlock({
     mounted,
   ]);
 
-  if (highlightedHtml && mounted) {
+  if (highlightedHtml) {
     return (
       <div className="not-prose my-4">
         <div className="border border-border rounded-lg overflow-hidden bg-card">
@@ -175,7 +168,11 @@ const CodeBlock = React.memo(function CodeBlock({
             {language || "text"}
           </span>
           <div className="flex items-center space-x-2">
-            <button className="text-muted-foreground hover:text-foreground transition-colors">
+            <button 
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => navigator.clipboard.writeText(code)}
+              title="Copy code"
+            >
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -192,18 +189,12 @@ const CodeBlock = React.memo(function CodeBlock({
             </button>
           </div>
         </div>
-        <div className="bg-muted/30 p-4">
-          {isHighlighting ? (
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-xs text-muted-foreground">
-                Highlighting code...
-              </span>
-            </div>
-          ) : null}
-          <code className="text-sm font-mono text-foreground/80 block whitespace-pre-wrap">
-            {code}
-          </code>
+        <div className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-muted/30 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent">
+          <pre className="shiki-code-block m-0 p-4 bg-muted/30 text-sm leading-relaxed overflow-x-auto">
+            <code className="bg-transparent text-foreground/80 font-mono block whitespace-pre-wrap">
+              {code}
+            </code>
+          </pre>
         </div>
       </div>
     </div>
