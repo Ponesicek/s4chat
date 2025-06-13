@@ -26,7 +26,7 @@ export function InputArea({
   }, []);
 
   return (
-    <div className="border-t bg-white p-4">
+    <div className="border-t p-4">
       <div className="flex flex-row gap-2 items-end">
         <ModelBrowser />
         <div className="flex-1">

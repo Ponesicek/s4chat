@@ -1,171 +1,124 @@
 "use client";
 
-import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useEffect, useState, useMemo } from "react";
-import React from "react";
-
-const registeredLanguages = new Set<string>();
-
-const highlightedCache = new Map<string, React.ReactElement>();
-
-type LanguageDefinition = {
-  default: (prism: unknown) => void;
-};
-
-const languageLoaders: Record<string, () => Promise<LanguageDefinition>> = {
-  javascript: () => import("react-syntax-highlighter/dist/esm/languages/prism/javascript"),
-  js: () => import("react-syntax-highlighter/dist/esm/languages/prism/javascript"),
-  typescript: () => import("react-syntax-highlighter/dist/esm/languages/prism/typescript"),
-  ts: () => import("react-syntax-highlighter/dist/esm/languages/prism/typescript"),
-  jsx: () => import("react-syntax-highlighter/dist/esm/languages/prism/jsx"),
-  tsx: () => import("react-syntax-highlighter/dist/esm/languages/prism/tsx"),
-  
-  // Python
-  python: () => import("react-syntax-highlighter/dist/esm/languages/prism/python"),
-  py: () => import("react-syntax-highlighter/dist/esm/languages/prism/python"),
-  
-  // Shell/Bash
-  bash: () => import("react-syntax-highlighter/dist/esm/languages/prism/bash"),
-  sh: () => import("react-syntax-highlighter/dist/esm/languages/prism/bash"),
-  shell: () => import("react-syntax-highlighter/dist/esm/languages/prism/bash"),
-  
-  // Rust
-  rust: () => import("react-syntax-highlighter/dist/esm/languages/prism/rust"),
-  rs: () => import("react-syntax-highlighter/dist/esm/languages/prism/rust"),
-  
-  // Go
-  go: () => import("react-syntax-highlighter/dist/esm/languages/prism/go"),
-  golang: () => import("react-syntax-highlighter/dist/esm/languages/prism/go"),
-  
-  // Java family
-  java: () => import("react-syntax-highlighter/dist/esm/languages/prism/java"),
-  kotlin: () => import("react-syntax-highlighter/dist/esm/languages/prism/kotlin"),
-  kt: () => import("react-syntax-highlighter/dist/esm/languages/prism/kotlin"),
-  scala: () => import("react-syntax-highlighter/dist/esm/languages/prism/scala"),
-  
-  // C family
-  c: () => import("react-syntax-highlighter/dist/esm/languages/prism/c"),
-  cpp: () => import("react-syntax-highlighter/dist/esm/languages/prism/cpp"),
-  "c++": () => import("react-syntax-highlighter/dist/esm/languages/prism/cpp"),
-  csharp: () => import("react-syntax-highlighter/dist/esm/languages/prism/csharp"),
-  cs: () => import("react-syntax-highlighter/dist/esm/languages/prism/csharp"),
-  "c#": () => import("react-syntax-highlighter/dist/esm/languages/prism/csharp"),
-  
-  // Web languages
-  html: () => import("react-syntax-highlighter/dist/esm/languages/prism/markup"),
-  xml: () => import("react-syntax-highlighter/dist/esm/languages/prism/markup"),
-  markup: () => import("react-syntax-highlighter/dist/esm/languages/prism/markup"),
-  css: () => import("react-syntax-highlighter/dist/esm/languages/prism/css"),
-  scss: () => import("react-syntax-highlighter/dist/esm/languages/prism/scss"),
-  sass: () => import("react-syntax-highlighter/dist/esm/languages/prism/sass"),
-  
-  // Other popular languages
-  php: () => import("react-syntax-highlighter/dist/esm/languages/prism/php"),
-  ruby: () => import("react-syntax-highlighter/dist/esm/languages/prism/ruby"),
-  rb: () => import("react-syntax-highlighter/dist/esm/languages/prism/ruby"),
-  swift: () => import("react-syntax-highlighter/dist/esm/languages/prism/swift"),
-  
-  // Data formats
-  json: () => import("react-syntax-highlighter/dist/esm/languages/prism/json"),
-  yaml: () => import("react-syntax-highlighter/dist/esm/languages/prism/yaml"),
-  yml: () => import("react-syntax-highlighter/dist/esm/languages/prism/yaml"),
-  toml: () => import("react-syntax-highlighter/dist/esm/languages/prism/toml"),
-  
-  // Database
-  sql: () => import("react-syntax-highlighter/dist/esm/languages/prism/sql"),
-  
-  // Documentation
-  markdown: () => import("react-syntax-highlighter/dist/esm/languages/prism/markdown"),
-  md: () => import("react-syntax-highlighter/dist/esm/languages/prism/markdown"),
-  
-  // DevOps
-  dockerfile: () => import("react-syntax-highlighter/dist/esm/languages/prism/docker"),
-  docker: () => import("react-syntax-highlighter/dist/esm/languages/prism/docker"),
-  
-  // Other
-  r: () => import("react-syntax-highlighter/dist/esm/languages/prism/r"),
-  matlab: () => import("react-syntax-highlighter/dist/esm/languages/prism/matlab"),
-  lua: () => import("react-syntax-highlighter/dist/esm/languages/prism/lua"),
-  perl: () => import("react-syntax-highlighter/dist/esm/languages/prism/perl"),
-  vim: () => import("react-syntax-highlighter/dist/esm/languages/prism/vim"),
-};
+import { codeToHtml } from 'shiki'
+import React, { useEffect, useState, useMemo } from "react";
 
 interface CodeBlockProps {
   code: string;
   language: string;
-  className?: string;
 }
 
-const CodeBlock = React.memo(function CodeBlock({ code, language, className }: CodeBlockProps) {
-  const [ready, setReady] = useState<boolean>(false);
+// Global cache for highlighted code
+const highlightCache = new Map<string, string>();
+
+const CodeBlock = React.memo(function CodeBlock({ code, language }: CodeBlockProps) {
+  // Create a unique cache key based on code content and language
+  const cacheKey = useMemo(() => {
+    return `${language || 'text'}:${code}`;
+  }, [code, language]);
+
+  // Check cache synchronously during initialization to prevent flicker
+  const cachedResult = highlightCache.get(cacheKey);
   
-  const cacheKey = useMemo(() => `${language}:${code}:${className || ''}`, [language, code, className]);
+  const [highlightedHtml, setHighlightedHtml] = useState<string>(cachedResult || '');
 
   useEffect(() => {
-    if (registeredLanguages.has(language)) {
-      setReady(true);
+    // If we already have cached content, no need to process
+    if (cachedResult) {
       return;
     }
 
-    if (!language || !languageLoaders[language]) {
-      setReady(true);
-      return;
-    }
-
-    languageLoaders[language]().then((mod) => {
-      if (!registeredLanguages.has(language) && mod.default) {
-        (SyntaxHighlighter as typeof SyntaxHighlighter & { registerLanguage: (name: string, language: unknown) => void }).registerLanguage(language, mod.default);
-        registeredLanguages.add(language);
+    const highlightCode = async () => {
+      try {
+        const html = await codeToHtml(code, {
+          lang: language || 'text',
+          theme: 'github-light',
+          transformers: [
+            {
+              pre(node) {
+                // Remove default styles and add our classes
+                this.addClassToHast(node, 'shiki-code-block');
+              }
+            }
+          ]
+        });
+        
+        // Cache the result
+        highlightCache.set(cacheKey, html);
+        setHighlightedHtml(html);
+      } catch (error) {
+        console.warn(`Failed to highlight code with language '${language}':`, error);
+        // Fallback to plain text if highlighting fails
+        const fallbackHtml = `<pre class="shiki-code-block"><code>${code}</code></pre>`;
+        highlightCache.set(cacheKey, fallbackHtml);
+        setHighlightedHtml(fallbackHtml);
       }
-      setReady(true);
-    }).catch((error) => {
-      console.warn(`Failed to load language '${language}':`, error);
-      setReady(true);
-    });
-  }, [language]);
+    };
 
-  const content = useMemo(() => {
-    const cachedVersion = highlightedCache.get(cacheKey);
-    if (cachedVersion) {
-      return cachedVersion;
-    }
+    highlightCode();
+  }, [code, language, cacheKey, cachedResult]);
 
-    if (!ready) {
-      return (
-        <div className={`bg-gray-50 border border-gray-200 rounded-lg p-4 ${className ?? ""}`}>
-          <code className="text-sm">{code}</code>
+  // If we have highlighted content (either cached or newly processed), show it
+  if (highlightedHtml) {
+    return (
+      <div className="not-prose my-4">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {/* Header with language name */}
+          <div className="bg-purple-100 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+            <span className="text-sm font-medium text-purple-700">
+              {language || 'text'}
+            </span>
+            <div className="flex items-center space-x-2">
+              <button 
+                className="text-purple-600 hover:text-purple-800 transition-colors"
+                onClick={() => navigator.clipboard.writeText(code)}
+                title="Copy code"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          {/* Code content with proper styling */}
+          <div 
+            className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-gray-50 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent"
+            dangerouslySetInnerHTML={{ __html: highlightedHtml }} 
+          />
         </div>
-      );
-    }
-
-    const highlightedElement = (
-      <SyntaxHighlighter
-        style={oneLight}
-        language={registeredLanguages.has(language) ? language : undefined}
-        PreTag="div"
-        className={className}
-        showLineNumbers={false}
-        wrapLines={true}
-        customStyle={{
-          margin: 0,
-          padding: '1rem',
-          backgroundColor: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-        }}
-      >
-        {code}
-      </SyntaxHighlighter>
+      </div>
     );
+  }
 
-    highlightedCache.set(cacheKey, highlightedElement);
-    
-    return highlightedElement;
-  }, [ready, language, code, className, cacheKey]);
-
-  return content;
+  // Show loading state only for non-cached content
+  return (
+    <div className="not-prose my-4">
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        {/* Header with language name */}
+        <div className="bg-purple-100 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+          <span className="text-sm font-medium text-purple-700">
+            {language || 'text'}
+          </span>
+          <div className="flex items-center space-x-2">
+            <button className="text-purple-600 hover:text-purple-800">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        {/* Loading content */}
+        <div className="bg-gray-50 p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+            <span className="text-xs text-gray-500">Highlighting code...</span>
+          </div>
+          <code className="text-sm font-mono text-gray-600 block whitespace-pre-wrap">{code}</code>
+        </div>
+      </div>
+    </div>
+  );
 });
 
 export default CodeBlock; 
+

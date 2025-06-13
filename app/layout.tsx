@@ -9,6 +9,8 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
+import { ThemeProvider } from "next-themes";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,26 +36,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClerkProvider dynamic>
-          <ConvexClientProvider>
-            <SidebarProvider defaultOpen={true}>
-              <AppSidebar />
-              <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ClerkProvider dynamic>
+            <ConvexClientProvider>
+              <SidebarProvider defaultOpen={true}>
+                <AppSidebar />
+                <SidebarInset>
+                                  <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                   <SidebarTrigger className="-ml-1" />
-                  <div className="text-lg font-semibold">S4 Chat</div>
+                  <div className="flex-1 text-lg font-semibold">S4 Chat</div>
                 </header>
-                <main className="flex flex-1 flex-col gap-4 p-4">
-                  {children}
-                </main>
-              </SidebarInset>
-            </SidebarProvider>
-          </ConvexClientProvider>
-        </ClerkProvider>
+                  <main className="flex flex-1 flex-col gap-4 p-4">
+                    {children}
+                  </main>
+                </SidebarInset>
+              </SidebarProvider>
+            </ConvexClientProvider>
+          </ClerkProvider>
+          </ThemeProvider>
       </body>
     </html>
   );
