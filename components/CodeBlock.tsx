@@ -115,8 +115,7 @@ const CodeBlock = React.memo(function CodeBlock({ code, language, className }: C
 
     languageLoaders[language]().then((mod) => {
       if (!registeredLanguages.has(language) && mod.default) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        (SyntaxHighlighter as any).registerLanguage(language, mod.default);
+        (SyntaxHighlighter as typeof SyntaxHighlighter & { registerLanguage: (name: string, language: unknown) => void }).registerLanguage(language, mod.default);
         registeredLanguages.add(language);
       }
       setReady(true);
