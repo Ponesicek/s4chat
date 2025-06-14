@@ -41,7 +41,7 @@ export default function ConversationLayout({
   }, [draft, user?.id, conversationId, sendMutation]);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-full max-h-[calc(100vh-2rem)]">
       {/* part that swaps when you change conversations */}
       <div className="flex-1 overflow-y-auto">{children}</div>
 

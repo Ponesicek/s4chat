@@ -124,7 +124,7 @@ function ModelCard({
         )}
 
         <div className="flex items-center justify-between mt-1">
-          <span className="text-xs font-mono text-muted-foreground/60 group-hover:text-accent-foreground/60 bg-muted px-2 py-1 rounded">
+          <span className="text-xs font-mono text-muted-foreground/60 group-hover:text-foreground bg-muted px-2 py-1 rounded">
             {model}
           </span>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity">

@@ -3,7 +3,7 @@
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
-import { useMutation, usePaginatedQuery } from "convex/react";
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   useState,
@@ -150,16 +150,32 @@ export default function ConversationPage() {
   const [FirstLoad, setFirstLoad] = useState(true);
   const { mounted: colorSchemeMounted } = useColorScheme();
 
+  const userId = user?.id;
+
+  // Fetch user conversations to verify the requested conversation exists
+  const conversations = useQuery(
+    api.conversations.GetConversations,
+    userId ? { user: userId } : ("skip" as const),
+  );
+
+  const conversationAccessible = Boolean(
+    userId &&
+      conversations &&
+      conversations.find((c) => c._id === conversationId),
+  );
+
   const {
     results: messages,
     status,
     loadMore,
   } = usePaginatedQuery(
     api.conversations.GetMessagesPaginatedWithModels,
-    {
-      user: user?.id || "",
-      conversation: conversationId,
-    },
+    conversationAccessible
+      ? {
+          user: userId as string,
+          conversation: conversationId,
+        }
+      : ("skip" as const),
     {
       initialNumItems: 7,
     },
@@ -272,8 +288,18 @@ export default function ConversationPage() {
     }
   }, [messages]);
 
+  // Redirect to home if conversation is not accessible when conversations loaded
+  useEffect(() => {
+    if (userId && conversations && !conversationAccessible) {
+      router.replace("/");
+    }
+  }, [userId, conversations, conversationAccessible, router]);
+
   if (!(user?.id && conversationId)) {
-    return <div className="text-foreground">Invalid conversation</div>;
+    useEffect(() => {
+      router.replace("/");
+    }, [router]);
+    return null;
   }
 
   if (!user) {

@@ -142,7 +142,7 @@ const CodeBlock = React.memo(function CodeBlock({
   if (highlightedHtml || !isHighlighting) {
     return (
       <div className="not-prose my-4">
-        <div className="rounded-lg overflow-hidden bg-card">
+        <div className="rounded-lg overflow-hidden bg-card border border-border">
           <div className="bg-sidebar px-4 py-2 border-b border-border flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">
               {language || "text"}

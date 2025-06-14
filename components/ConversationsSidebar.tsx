@@ -30,7 +30,7 @@ export function ProfileSidebarFooter() {
     <Link href="/settings" className="w-full">
       <button
         type="button"
-        className="flex items-center gap-3 w-full rounded-md p-3 mb-1 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+        className="group/profile-button flex items-center gap-3 w-full rounded-md p-3 mb-1 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <span className="pointer-events-none flex items-center justify-center">
           <UserButton />
@@ -42,7 +42,7 @@ export function ProfileSidebarFooter() {
           {(!mounted || showEmail) && (
             <span
               suppressHydrationWarning
-              className="text-xs text-muted-foreground truncate max-w-[160px]"
+              className="text-xs text-muted-foreground group-hover/profile-button:text-foreground truncate max-w-[160px] transition-colors"
             >
               {user?.emailAddresses?.[0]?.emailAddress}
             </span>
@@ -87,33 +87,35 @@ export function AppSidebar() {
               {conversations ? (
                 conversations.map((conversation) => (
                   <SidebarMenuItem key={conversation._id}>
-                    <div className="group/item relative">
+                    <div className="group/item relative h-10 flex items-center">
                       <SidebarMenuButton
                         asChild
                         isActive={params.id === conversation._id}
-                        className="group/menu-item"
+                        className="group/menu-item h-full flex-1"
                       >
                         <Link href={`/conversation/${conversation._id}`}>
                           <span className="truncate">{conversation.name}</span>
                         </Link>
                       </SidebarMenuButton>
-                      <SidebarMenuAction
-                        className="opacity-0 group-hover/menu-item:opacity-100 transition-opacity duration-200"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          if (params.id === conversation._id) {
-                            router.push("/");
-                          }
-                          deleteConversationMutation({
-                            user: user?.id ?? "",
-                            conversation: conversation._id,
-                          });
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                        <span className="sr-only">Delete conversation</span>
-                      </SidebarMenuAction>
+                      <div className="flex items-center h-full">
+                        <SidebarMenuAction
+                          className="opacity-0 group-hover/menu-item:opacity-100 transition-opacity duration-200 top-1/2 -translate-y-1/2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            if (params.id === conversation._id) {
+                              router.push("/");
+                            }
+                            deleteConversationMutation({
+                              user: user?.id ?? "",
+                              conversation: conversation._id,
+                            });
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Delete conversation</span>
+                        </SidebarMenuAction>
+                      </div>
                     </div>
                   </SidebarMenuItem>
                 ))
