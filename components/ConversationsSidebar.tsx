@@ -20,9 +20,12 @@ import { Button } from "./ui/button";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { useEmailSettings } from "@/hooks/use-email-settings";
 
 export function ProfileSidebarFooter() {
   const { user } = useUser();
+  const { showEmail, mounted } = useEmailSettings();
+  
   return (
     <Link href="/settings" className="w-full">
       <button
@@ -36,9 +39,14 @@ export function ProfileSidebarFooter() {
           <span className="text-sm font-medium leading-none truncate">
             {user?.username}
           </span>
-          <span className="text-xs text-muted-foreground truncate max-w-[160px]">
-            {user?.emailAddresses?.[0]?.emailAddress}
-          </span>
+          {(!mounted || showEmail) && (
+            <span
+              suppressHydrationWarning
+              className="text-xs text-muted-foreground truncate max-w-[160px]"
+            >
+              {user?.emailAddresses?.[0]?.emailAddress}
+            </span>
+          )}
         </div>
       </button>
     </Link>

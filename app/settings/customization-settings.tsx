@@ -12,8 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useFontSettings } from "@/hooks/use-font-settings";
+import { useEmailSettings } from "@/hooks/use-email-settings";
 
 export function CustomizationSettings() {
   const { theme, setTheme } = useTheme();
@@ -22,15 +25,25 @@ export function CustomizationSettings() {
     setColorScheme,
     mounted: colorSchemeMounted,
   } = useColorScheme();
+  const {
+    fontFamily,
+    fontSize,
+    setFontFamily,
+    setFontSize,
+    mounted: fontSettingsMounted,
+  } = useFontSettings();
+  const {
+    showEmail,
+    setShowEmail,
+    mounted: emailSettingsMounted,
+  } = useEmailSettings();
   const [mounted, setMounted] = useState(false);
-  const [fontFamily, setFontFamily] = useState("inter");
-  const [fontSize, setFontSize] = useState("medium");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted || !colorSchemeMounted) {
+  if (!mounted || !colorSchemeMounted || !fontSettingsMounted || !emailSettingsMounted) {
     return (
       <div className="space-y-8">
         <div className="space-y-4">
@@ -329,6 +342,30 @@ export function CustomizationSettings() {
               </SelectContent>
             </Select>
           </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium">Privacy</h3>
+          <p className="text-sm text-muted-foreground">
+            Control what information is displayed.
+          </p>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <Label htmlFor="show-email">Show Email in Sidebar</Label>
+            <p className="text-sm text-muted-foreground">
+              Display your email address in the sidebar footer.
+            </p>
+          </div>
+          <Switch
+            id="show-email"
+            checked={showEmail}
+            onCheckedChange={setShowEmail}
+          />
         </div>
       </div>
     </div>

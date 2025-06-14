@@ -13,6 +13,7 @@ import { useCallback, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -34,14 +35,14 @@ function SignInForm() {
     <div className="flex flex-col gap-8 w-full max-w-lg mx-auto p-8">
       <p>To start a conversation, please sign in or sign up.</p>
       <SignInButton mode="modal">
-        <button className="bg-foreground text-background px-4 py-2 rounded-md">
+        <Button size="lg" className="w-full">
           Sign in
-        </button>
+        </Button>
       </SignInButton>
       <SignUpButton mode="modal">
-        <button className="bg-foreground text-background px-4 py-2 rounded-md">
+        <Button size="lg" variant="outline" className="w-full">
           Sign up
-        </button>
+        </Button>
       </SignUpButton>
     </div>
   );

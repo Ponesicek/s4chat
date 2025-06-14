@@ -12,11 +12,14 @@ export function useColorScheme() {
     setMounted(true);
     // Load color scheme from localStorage on mount
     const saved = localStorage.getItem("color-scheme") as ColorScheme;
-    if (saved) {
+    if (saved && saved !== "default") {
       setColorScheme(saved);
       applyColorScheme(saved);
     } else {
-      applyColorScheme("default");
+      // Default is already applied in HTML, just ensure localStorage is set
+      setColorScheme("default");
+      localStorage.setItem("color-scheme", "default");
+      // Don't need to apply "default" since it's already in the HTML className
     }
   }, []);
 
@@ -41,9 +44,16 @@ export function useColorScheme() {
     applyColorScheme(scheme);
   };
 
+  const resetToDefault = () => {
+    setColorScheme("default");
+    localStorage.setItem("color-scheme", "default");
+    applyColorScheme("default");
+  };
+
   return {
     colorScheme,
     setColorScheme: updateColorScheme,
+    resetToDefault,
     mounted,
   };
 }
