@@ -8,20 +8,95 @@ import { useCallback, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
+import { useTheme } from "next-themes";
+import Image from "next/image";
+
+const getModelIcon = (provider: string, author: string, isDark: boolean) => {
+  // Check for OpenAI models
+  if (
+    provider === "openrouter" &&
+    (author.toLowerCase().includes("openai") || author === "OpenAI")
+  ) {
+    return (
+      <div className="w-6 h-6 rounded-full flex items-center justify-center bg-muted p-1">
+        <Image
+          src={isDark ? "/openAILight.svg" : "/openAIDark.svg"}
+          alt="OpenAI"
+          width={16}
+          height={16}
+        />
+      </div>
+    );
+  }
+
+  // Check for Google/Gemini models
+  if (provider === "google" || author === "Google") {
+    return (
+      <div className="w-6 h-6 rounded-full flex items-center justify-center bg-muted p-1">
+        <Image
+          src={isDark ? "/geminiLight.svg" : "/geminiDark.svg"}
+          alt="Gemini"
+          width={16}
+          height={16}
+        />
+      </div>
+    );
+  }
+
+  // Check for Anthropic/Claude models
+  if (provider === "anthropic" || author === "Anthropic") {
+    return (
+      <div className="w-6 h-6 rounded-full flex items-center justify-center bg-muted p-1">
+        <Image
+          src={isDark ? "/anthropicLight.svg" : "/anthropicDark.svg"}
+          alt="Anthropic"
+          width={16}
+          height={16}
+        />
+      </div>
+    );
+  }
+
+  // Default AI icon
+  return (
+    <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
+      <svg
+        className="w-4 h-4 text-muted-foreground"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+        />
+      </svg>
+    </div>
+  );
+};
 
 function ModelCard({
   name,
   description,
   model,
   modelId,
+  provider,
+  author,
   setCurrentModel,
 }: {
   name: string;
   description: string;
   model: string;
   modelId: string;
+  provider: string;
+  author: string;
   setCurrentModel: (modelId: string) => void;
 }) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   const onClick = useCallback(() => {
     Cookies.set("model", modelId);
     setCurrentModel(name);
@@ -34,11 +109,11 @@ function ModelCard({
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-card-foreground group-hover:text-accent-foreground text-sm leading-tight">
-            {name}
-          </h3>
-          <div className="flex-shrink-0">
-            <div className="w-2 h-2 rounded-full bg-green-500 opacity-60 group-hover:opacity-100 transition-opacity"></div>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {getModelIcon(provider, author, isDark)}
+            <h3 className="font-semibold text-card-foreground group-hover:text-accent-foreground text-sm leading-tight truncate">
+              {name}
+            </h3>
           </div>
         </div>
 
@@ -166,6 +241,8 @@ export function ModelBrowser() {
                     description={model.description}
                     model={model.model}
                     modelId={model._id}
+                    provider={model.provider}
+                    author={model.author}
                     setCurrentModel={setCurrentModel}
                   />
                 ))}

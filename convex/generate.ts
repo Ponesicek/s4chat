@@ -62,14 +62,13 @@ export const generateMessageAction = internalAction({
     const shouldGenerateName = messagesQuery.length === 1;
     const messagesHistory: { role: "user" | "assistant"; content: string }[] =
       [];
-    for (const message of messagesQuery.reverse()) {
+    for (const message of messagesQuery) {
       if (message.role === "user") {
         messagesHistory.push({ role: "user", content: message.content });
       } else {
         messagesHistory.push({ role: "assistant", content: message.content });
       }
     }
-    messagesHistory.push({ role: "user", content: args.content });
     const response = await streamText({
       model: openrouter.chat(args.modelName),
       messages: messagesHistory,

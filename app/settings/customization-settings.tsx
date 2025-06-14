@@ -206,10 +206,11 @@ export function CustomizationSettings() {
                 | "gruvbox"
                 | "solarized"
                 | "catpuccin"
-                | "nord",
+                | "nord"
+                | "t3",
             )
           }
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2"
         >
           <div>
             <RadioGroupItem
@@ -276,6 +277,16 @@ export function CustomizationSettings() {
             >
               <div className="mb-2 h-5 w-5 rounded-full bg-blue-500" />
               <div className="text-sm font-medium">Nord</div>
+            </Label>
+          </div>
+          <div>
+            <RadioGroupItem value="t3" id="t3" className="sr-only peer" />
+            <Label
+              htmlFor="t3"
+              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+            >
+              <div className="mb-2 h-5 w-5 rounded-full bg-violet-500" />
+              <div className="text-sm font-medium">T3</div>
             </Label>
           </div>
         </RadioGroup>

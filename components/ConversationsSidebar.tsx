@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarMenuAction,
 } from "@/components/ui/sidebar";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -18,10 +19,10 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 export function ProfileSidebarFooter() {
   const { user } = useUser();
-
   return (
     <Link href="/settings" className="w-full">
       <button
@@ -78,38 +79,34 @@ export function AppSidebar() {
               {conversations ? (
                 conversations.map((conversation) => (
                   <SidebarMenuItem key={conversation._id}>
-                    <SidebarMenuButton asChild>
-                      <Link
-                        href={`/conversation/${conversation._id}`}
-                        className={
-                          params.id === conversation._id
-                            ? "bg-foreground text-background"
-                            : ""
-                        }
+                    <div className="group/item relative">
+                      <SidebarMenuButton
+                        asChild
+                        isActive={params.id === conversation._id}
+                        className="group/menu-item"
                       >
-                        <span className="flex-1 truncate">
-                          {conversation.name}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="ml-auto hover:bg-red-500 hover:text-white"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (params.id === conversation._id) {
-                              router.push("/");
-                            }
-                            deleteConversationMutation({
-                              user: user?.id ?? "",
-                              conversation: conversation._id,
-                            });
-                          }}
-                        >
-                          X
-                        </Button>
-                      </Link>
-                    </SidebarMenuButton>
+                        <Link href={`/conversation/${conversation._id}`}>
+                          <span className="truncate">{conversation.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      <SidebarMenuAction
+                        className="opacity-0 group-hover/menu-item:opacity-100 transition-opacity duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          if (params.id === conversation._id) {
+                            router.push("/");
+                          }
+                          deleteConversationMutation({
+                            user: user?.id ?? "",
+                            conversation: conversation._id,
+                          });
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Delete conversation</span>
+                      </SidebarMenuAction>
+                    </div>
                   </SidebarMenuItem>
                 ))
               ) : (

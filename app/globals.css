@@ -267,6 +267,38 @@
   --sidebar-ring: #5e81ac;
 }
 
+.t3 {
+  /* T3 Chat Theme - Based on actual screenshot and extracted colors */
+  --background: #F9EFF9; /* Very light pink background from screenshot */
+  --foreground: #2d1b2e; /* Dark text for good contrast */
+  --card: #F2E3F4; /* Clean white cards */
+  --card-foreground: #1f2e1b;
+  --popover: #F2E3F4;
+  --popover-foreground: #1b2e1d;
+  --primary: #A43E6A; /* Main purple/pink from "New Chat" button */
+  --primary-foreground: #ffffff;
+  --secondary: #F8F8F8; /* Light purple for secondary elements */
+  --secondary-foreground: #2d1b2e;
+  --muted: #F9EFF9; /* Same as background for subtle elements */
+  --muted-foreground: #917E92; /* Muted purple for less important text */
+  --accent: #C198B6; /* Medium purple for accents */
+  --accent-foreground: #2d1b2e;
+  --destructive: #dc2626; /* Standard red for destructive actions */
+  --destructive-foreground: #ffffff;
+  --border: hsl(304.8 61% 83.9%); /* Light purple borders */
+  --input: #c8b9ca; /* White input backgrounds */
+  --ring: #141113; /* Focus ring matches primary */
+  --sidebar: #F2E3F4; /* Light pink sidebar background */
+  --sidebar-foreground: hsl(327 77% 38%); /* Dark text in sidebar */
+  --sidebar-primary: #893E69; /* Primary purple for active states */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #F8F8F8; /* Light purple for hover states */
+  --sidebar-accent-foreground: #2d1b2e;
+  --sidebar-border: #C198B6; /* Medium purple for sidebar borders */
+  --sidebar-ring: #893E69; /* Focus ring in sidebar */
+}
+
+
 /* Dark Mode Variants */
 .dark.default {
   /* GitHub Dark */
@@ -416,6 +448,37 @@
   --sidebar-accent-foreground: #eceff4;
   --sidebar-border: #434c5e;
   --sidebar-ring: #81a1c1;
+}
+
+.dark.t3 {
+  /* Dark mode variant - matching the dark screenshot style */
+  --background: #211C26; /* Dark background from screenshot */
+  --foreground: #F2EBFA; /* Light text for good contrast */
+  --card: #1A131A; /* Dark cards */
+  --card-foreground: #f4f5f4;
+  --popover: #1A131A;
+  --popover-foreground: #f4f4f5;
+  --primary: #40132A; /* Keep the main purple consistent */
+  --primary-foreground: #ffffff;
+  --secondary: #3a3a3a; /* Dark secondary elements */
+  --secondary-foreground: #e4e7e4;
+  --muted: #1e1e1e; /* Same as background for subtle elements */
+  --muted-foreground: #a1aaa3; /* Muted text in dark mode */
+  --accent: #C198B6; /* Medium purple for accents */
+  --accent-foreground: #1e1e1e;
+  --destructive: #ef4444; /* Standard red for destructive actions */
+  --destructive-foreground: #ffffff;
+  --border: hsl(333.3 22% 16.1%); /* Dark borders */
+  --input: #2a2a2a; /* Dark input backgrounds */
+  --ring: #C198B6; /* Focus ring */
+  --sidebar: #1A131A; /* Dark sidebar background matching screenshot */
+  --sidebar-foreground: rgb(231, 208, 221); /* Light text in dark sidebar */
+  --sidebar-primary: #A43E6A; /* Primary purple for active states */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3a3a3a; /* Dark hover states */
+  --sidebar-accent-foreground: #e4e4e7;
+  --sidebar-border: #404040; /* Dark sidebar borders */
+  --sidebar-ring: #C198B6; /* Focus ring in sidebar */
 }
 
 @layer base {

@@ -19,6 +19,7 @@ const getShikiTheme = (colorScheme: string, isDark: boolean) => {
     solarized: isDark ? "solarized-dark" : "solarized-light",
     catpuccin: isDark ? "catppuccin-mocha" : "catppuccin-latte",
     nord: isDark ? "nord" : "catppuccin-latte",
+    t3: isDark ? "rose-pine" : "rose-pine-dawn", // Use GitHub theme for T3 (clean and modern)
   };
 
   return (
@@ -47,15 +48,22 @@ const CodeBlock = React.memo(function CodeBlock({
   const [highlightedHtml, setHighlightedHtml] = useState<string>(
     cachedResult || "",
   );
+  const [isHighlighting, setIsHighlighting] = useState<boolean>(false);
 
   useEffect(() => {
     if (cachedResult) {
       setHighlightedHtml(cachedResult);
+      setIsHighlighting(false);
       return;
     }
 
     if (!mounted) {
       return;
+    }
+
+    // Only show loading state if we don't have any previous content
+    if (!highlightedHtml) {
+      setIsHighlighting(true);
     }
 
     const highlightCode = async () => {
@@ -75,8 +83,14 @@ const CodeBlock = React.memo(function CodeBlock({
           ],
         });
 
-        highlightCache.set(cacheKey, html);
-        setHighlightedHtml(html);
+        // Post-process HTML for t3 theme to use sidebar background
+        const processedHtml = colorScheme === 't3' && resolvedTheme !== "dark"
+          ? html.replace(/background-color:[^;"]*/g, 'background-color:rgb(245, 237, 250)')
+          : html;
+
+        highlightCache.set(cacheKey, processedHtml);
+        setHighlightedHtml(processedHtml);
+        setIsHighlighting(false);
       } catch (error) {
         console.warn(
           `Failed to highlight code with theme '${getShikiTheme(colorScheme, resolvedTheme === "dark")}' for language '${language}':`,
@@ -101,11 +115,13 @@ const CodeBlock = React.memo(function CodeBlock({
 
           highlightCache.set(cacheKey, html);
           setHighlightedHtml(html);
+          setIsHighlighting(false);
         } catch (fallbackError) {
           console.error("Fallback highlighting also failed:", fallbackError);
           const fallbackHtml = `<pre class="shiki-code-block"><code>${code}</code></pre>`;
           highlightCache.set(cacheKey, fallbackHtml);
           setHighlightedHtml(fallbackHtml);
+          setIsHighlighting(false);
         }
       }
     };
@@ -119,13 +135,15 @@ const CodeBlock = React.memo(function CodeBlock({
     resolvedTheme,
     colorScheme,
     mounted,
+    highlightedHtml,
   ]);
 
-  if (highlightedHtml) {
+  // Always render the highlighted version if we have content, or show fallback only if we're not highlighting
+  if (highlightedHtml || !isHighlighting) {
     return (
       <div className="not-prose my-4">
-        <div className="border border-border rounded-lg overflow-hidden bg-card">
-          <div className="bg-muted px-4 py-2 border-b border-border flex items-center justify-between">
+        <div className="rounded-lg overflow-hidden bg-card">
+          <div className="bg-sidebar px-4 py-2 border-b border-border flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">
               {language || "text"}
             </span>
@@ -151,54 +169,27 @@ const CodeBlock = React.memo(function CodeBlock({
               </button>
             </div>
           </div>
-          <div
-            className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-muted/30 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent"
-            dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-          />
+          {highlightedHtml ? (
+            <div
+              className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-muted/30 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent"
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+          ) : (
+            <div className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-muted/30 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent">
+              <pre className="shiki-code-block m-0 p-4 bg-muted/30 text-sm leading-relaxed overflow-x-auto">
+                <code className="bg-transparent text-foreground/80 font-mono block whitespace-pre-wrap">
+                  {code}
+                </code>
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="not-prose my-4">
-      <div className="border border-border rounded-lg overflow-hidden bg-card">
-        <div className="bg-muted px-4 py-2 border-b border-border flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">
-            {language || "text"}
-          </span>
-          <div className="flex items-center space-x-2">
-            <button 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => navigator.clipboard.writeText(code)}
-              title="Copy code"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-muted/30 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent">
-          <pre className="shiki-code-block m-0 p-4 bg-muted/30 text-sm leading-relaxed overflow-x-auto">
-            <code className="bg-transparent text-foreground/80 font-mono block whitespace-pre-wrap">
-              {code}
-            </code>
-          </pre>
-        </div>
-      </div>
-    </div>
-  );
+  // Return null if we're highlighting and don't have content yet (prevents flash)
+  return null;
 });
 
 export default CodeBlock;
