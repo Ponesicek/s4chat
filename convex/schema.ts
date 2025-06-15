@@ -25,8 +25,6 @@ export default defineSchema({
     author: v.string(),
     context_length: v.number(),
     reasoning: v.boolean(),
-    reasoning_tags: v.array(v.string()),
-    price: v.array(v.number()),
     pinned: v.boolean(),
     provider: v.union(
       v.literal("openrouter"),

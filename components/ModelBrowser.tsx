@@ -18,6 +18,7 @@ function ModelCard({
   provider,
   author,
   setCurrentModel,
+  setPopoverOpen,
 }: {
   name: string;
   description: string;
@@ -26,11 +27,13 @@ function ModelCard({
   provider: string;
   author: string;
   setCurrentModel: (modelId: string) => void;
+  setPopoverOpen: (open: boolean) => void;
 }) {
   const onClick = useCallback(() => {
     Cookies.set("model", modelId);
     setCurrentModel(name);
-  }, [modelId, setCurrentModel, name]);
+    setPopoverOpen(false);
+  }, [modelId, setCurrentModel, name, setPopoverOpen]);
 
   return (
     <div
@@ -81,6 +84,7 @@ function ModelCard({
 export function ModelBrowser() {
   const models = useQuery(api.generate.GetModels, {});
   const [, setCurrentModel] = useState<string | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const currentModelID = Cookies.get("model");
   useEffect(() => {
     setCurrentModel(
@@ -107,8 +111,8 @@ export function ModelBrowser() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Popover>
+    <div className="flex flex-col gap-4 ">
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
@@ -122,7 +126,7 @@ export function ModelBrowser() {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-96 p-0" align="start">
+        <PopoverContent className="w-96 p-0 " align="start">
           <div className="p-4 border-b border-border">
             <h2 className="font-semibold text-base text-foreground">
               Available Models
@@ -132,7 +136,7 @@ export function ModelBrowser() {
             </p>
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto no-scrollbar">
             {models?.length === 0 ? (
               <div className="p-6 text-center">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
@@ -166,6 +170,7 @@ export function ModelBrowser() {
                     provider={model.provider}
                     author={model.author}
                     setCurrentModel={setCurrentModel}
+                    setPopoverOpen={setPopoverOpen}
                   />
                 ))}
               </div>

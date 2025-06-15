@@ -4,6 +4,9 @@ import { codeToHtml } from "shiki";
 import React, { useEffect, useState, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { Button } from "./ui/button";
+import { Copy } from "lucide-react";
+import { toast } from "sonner";
 
 interface CodeBlockProps {
   code: string;
@@ -151,25 +154,18 @@ const CodeBlock = React.memo(function CodeBlock({
               {language || "text"}
             </span>
             <div className="flex items-center space-x-2">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => navigator.clipboard.writeText(code)}
+                onClick={() => {
+                  navigator.clipboard.writeText(code);
+                  toast.success("Copied to clipboard");
+                }}
                 title="Copy code"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </button>
+                <Copy />
+              </Button>
             </div>
           </div>
           {highlightedHtml ? (

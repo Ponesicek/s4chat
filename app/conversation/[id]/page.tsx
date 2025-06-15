@@ -38,13 +38,21 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
   return (
     <div
       onClick={() => setIsOpen(!isOpen)}
-      className="bg-muted text-muted-foreground rounded-md p-2 prose prose-sm max-w-none prose-p:text-muted-foreground prose-p:my-1 hover:cursor-pointer"
+      className="mb-3 bg-muted text-muted-foreground rounded-md p-2 prose prose-sm max-w-none prose-p:text-muted-foreground prose-p:my-1 hover:cursor-pointer"
     >
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Reasoning</span>
         <ChevronDown className={`w-4 h-4 text-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </div>
-      {isOpen && <div className="mt-2">{children}</div>}
+      {isOpen && <div className="mt-2">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
+        remarkRehypeOptions={{ allowDangerousHtml: true }}
+      >
+        {children as string}
+      </ReactMarkdown>
+        </div>}
     </div>
   );
 };

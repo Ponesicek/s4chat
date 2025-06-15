@@ -130,6 +130,7 @@ export const generateMessageAction = internalAction({
     const response = await streamText({
       model: openrouter.chat(args.modelName),
       messages: messagesHistory,
+      
     });
 
     if (!response) {

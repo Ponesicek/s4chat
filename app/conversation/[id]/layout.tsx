@@ -7,7 +7,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import Cookies from "js-cookie";
-
+import { Toaster } from "@/components/ui/sonner"
 import { InputArea } from "@/components/InputArea";
 
 export default function ConversationLayout({
@@ -70,6 +70,8 @@ export default function ConversationLayout({
         images={images}
         setImages={setImages}
       />
+      <Toaster className="primary" />
+
     </div>
   );
 }

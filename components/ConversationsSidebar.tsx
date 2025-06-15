@@ -70,7 +70,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel
             asChild
-            className="text-2xl font-bold flex justify-center items-center m-2"
+            className="text-lg text-primary justify-center mb-2"
           >
             <Link href="/">S4 Chat</Link>
           </SidebarGroupLabel>
