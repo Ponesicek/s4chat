@@ -4,11 +4,9 @@ import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AppSidebar } from "@/components/ConversationsSidebar";
-import {
-  SidebarProvider,
-  SidebarInset,
-} from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ThemeProvider } from "next-themes";
+import { cookies } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,18 +32,36 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const colorSchemeCookie = cookieStore?.get?.("color-scheme")?.value as
+    | "default"
+    | "gruvbox"
+    | "solarized"
+    | "catpuccin"
+    | "nord"
+    | "t3"
+    | undefined;
+  const initialColorScheme =
+    colorSchemeCookie &&
+    ["default", "gruvbox", "solarized", "catpuccin", "nord", "t3"].includes(
+      colorSchemeCookie,
+    )
+      ? colorSchemeCookie
+      : "default";
+
   return (
-    <html lang="en" suppressHydrationWarning className="default">
+    <html lang="en" suppressHydrationWarning className={initialColorScheme}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} antialiased font-inter size-medium`}
-        style={{ 
-          fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
-          fontSize: '16px'
+        style={{
+          fontFamily:
+            'var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+          fontSize: "16px",
         }}
         suppressHydrationWarning={true}
       >

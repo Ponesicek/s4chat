@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-type ColorScheme = "default" | "gruvbox" | "solarized" | "catpuccin" | "nord" | "t3";
+type ColorScheme =
+  | "default"
+  | "gruvbox"
+  | "solarized"
+  | "catpuccin"
+  | "nord"
+  | "t3";
 
 export function useColorScheme() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>("default");
@@ -15,10 +21,13 @@ export function useColorScheme() {
     if (saved && saved !== "default") {
       setColorScheme(saved);
       applyColorScheme(saved);
+      // Persist to cookie so SSR picks it up
+      document.cookie = `color-scheme=${saved}; path=/; max-age=31536000`;
     } else {
       // Default is already applied in HTML, just ensure localStorage is set
       setColorScheme("default");
       localStorage.setItem("color-scheme", "default");
+      document.cookie = "color-scheme=default; path=/; max-age=31536000";
       // Don't need to apply "default" since it's already in the HTML className
     }
   }, []);
@@ -41,12 +50,14 @@ export function useColorScheme() {
   const updateColorScheme = (scheme: ColorScheme) => {
     setColorScheme(scheme);
     localStorage.setItem("color-scheme", scheme);
+    document.cookie = `color-scheme=${scheme}; path=/; max-age=31536000`;
     applyColorScheme(scheme);
   };
 
   const resetToDefault = () => {
     setColorScheme("default");
     localStorage.setItem("color-scheme", "default");
+    document.cookie = "color-scheme=default; path=/; max-age=31536000";
     applyColorScheme("default");
   };
 

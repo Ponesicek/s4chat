@@ -19,7 +19,7 @@ export function useEmailSettings() {
 
   useEffect(() => {
     setMounted(true);
-    
+
     const stored = localStorage.getItem(EMAIL_SETTINGS_STORAGE_KEY);
     if (stored) {
       try {
@@ -44,7 +44,10 @@ export function useEmailSettings() {
           const parsed = JSON.parse(e.newValue) as EmailSettings;
           setSettings(parsed);
         } catch (error) {
-          console.error("Failed to parse email settings from storage event:", error);
+          console.error(
+            "Failed to parse email settings from storage event:",
+            error,
+          );
         }
       }
     };
@@ -67,7 +70,9 @@ export function useEmailSettings() {
     );
     // Broadcast change to other hook instances in the same window
     window.dispatchEvent(
-      new CustomEvent<EmailSettings>(EMAIL_SETTINGS_EVENT, { detail: newSettings }),
+      new CustomEvent<EmailSettings>(EMAIL_SETTINGS_EVENT, {
+        detail: newSettings,
+      }),
     );
   };
 
@@ -80,4 +85,4 @@ export function useEmailSettings() {
     setShowEmail,
     mounted,
   };
-} 
+}

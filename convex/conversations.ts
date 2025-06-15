@@ -214,3 +214,14 @@ export const DeleteConversation = mutation({
     return null;
   },
 });
+
+export const GetImage = query({
+  args: {
+    user: v.string(),
+    image: v.id("_storage"),
+  },
+  returns: v.string(),
+  handler: async (ctx, args) => {
+    return (await ctx.storage.getUrl(args.image)) ?? "";
+  },
+});

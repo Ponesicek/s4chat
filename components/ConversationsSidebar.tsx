@@ -25,7 +25,7 @@ import { useEmailSettings } from "@/hooks/use-email-settings";
 export function ProfileSidebarFooter() {
   const { user } = useUser();
   const { showEmail, mounted } = useEmailSettings();
-  
+
   return (
     <Link href="/settings" className="w-full">
       <button
@@ -86,7 +86,7 @@ export function AppSidebar() {
               {conversations ? (
                 conversations.map((conversation) => (
                   <SidebarMenuItem key={conversation._id}>
-                    <div className="group/item relative h-10 flex items-center">
+                    <div className="group/item relative h-9.5 flex items-center">
                       <SidebarMenuButton
                         asChild
                         isActive={params.id === conversation._id}

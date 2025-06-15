@@ -41,7 +41,11 @@ export default defineSchema({
   users: defineTable({
     openrouter_api_key: v.string(),
     theme: v.object({
-      theme: v.union(v.literal("light"), v.literal("dark"), v.literal("system")),
+      theme: v.union(
+        v.literal("light"),
+        v.literal("dark"),
+        v.literal("system"),
+      ),
       colors: v.union(
         v.literal("default"),
         v.literal("gruvbox"),
@@ -56,7 +60,11 @@ export default defineSchema({
         v.literal("system"),
         v.literal("mono"),
       ),
-      fontSize: v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
+      fontSize: v.union(
+        v.literal("small"),
+        v.literal("medium"),
+        v.literal("large"),
+      ),
     }),
   }),
 });

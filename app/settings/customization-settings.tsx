@@ -43,7 +43,12 @@ export function CustomizationSettings() {
     setMounted(true);
   }, []);
 
-  if (!mounted || !colorSchemeMounted || !fontSettingsMounted || !emailSettingsMounted) {
+  if (
+    !mounted ||
+    !colorSchemeMounted ||
+    !fontSettingsMounted ||
+    !emailSettingsMounted
+  ) {
     return (
       <div className="space-y-8">
         <div className="space-y-4">

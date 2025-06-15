@@ -21,7 +21,8 @@ export default function ConversationLayout({
 
   const [draft, setDraft] = useState(""); // stays mounted → preserved
   const sendMutation = useMutation(api.generate.generateMessage);
-
+  const sendImageMutation = useMutation(api.generate.saveImage);
+  const [images, setImages] = useState<string[]>([]);
   const sendMessage = useCallback(async () => {
     if (!draft.trim() || !user?.id) return;
 
@@ -31,6 +32,14 @@ export default function ConversationLayout({
       Cookies.set("model", model);
     }
 
+    for (const image of images) {
+      await sendImageMutation({
+        user: user.id,
+        conversation: conversationId,
+        model: model as Id<"models">,
+        storageId: image as Id<"_storage">,
+      });
+    }
     await sendMutation({
       user: user.id,
       conversation: conversationId,
@@ -38,7 +47,14 @@ export default function ConversationLayout({
       model: model as Id<"models">,
     });
     setDraft("");
-  }, [draft, user?.id, conversationId, sendMutation]);
+  }, [
+    draft,
+    user?.id,
+    conversationId,
+    sendMutation,
+    sendImageMutation,
+    images,
+  ]);
 
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-2rem)]">
@@ -50,13 +66,9 @@ export default function ConversationLayout({
         message={draft}
         setMessage={setDraft}
         generateMessage={sendMessage}
-        handleKeyPress={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-          }
-        }}
         user={user}
+        images={images}
+        setImages={setImages}
       />
     </div>
   );

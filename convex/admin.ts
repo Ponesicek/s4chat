@@ -55,13 +55,12 @@ export const patchMessage = mutation({
   handler: async (ctx) => {
     const msg = await ctx.db.query("messages").collect();
     for (const message of msg) {
-        await ctx.db.patch(message._id, {
-          isImage: false,
-        });
+      await ctx.db.patch(message._id, {
+        isImage: false,
+      });
     }
   },
 });
-
 
 export const updateModels = mutation({
   args: {},

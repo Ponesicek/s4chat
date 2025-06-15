@@ -1,39 +1,48 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { ModelBrowser } from "@/components/ModelBrowser";
 import { useUser } from "@clerk/nextjs";
 import { Paperclip, Send } from "lucide-react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
-
 
 export function InputArea({
   message,
   setMessage,
-  handleKeyPress,
-  user,
   generateMessage,
+  setImages,
 }: {
   message: string;
   setMessage: (message: string) => void;
-  handleKeyPress: (e: React.KeyboardEvent) => void;
   user: ReturnType<typeof useUser>["user"];
   generateMessage: () => void;
+  images: string[];
+  setImages: Dispatch<SetStateAction<string[]>>;
 }) {
   // Keep a reference to the underlying textarea so we can focus it when the component mounts.
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   // State management
   const [isFocused, setIsFocused] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  
+
   // Get models and current model for icon display
   const models = useQuery(api.generate.GetModels, {});
   const currentModelID = Cookies.get("model");
   const currentModel = models?.find((model) => model._id === currentModelID);
-  
+
+  // Mutation for generating upload URLs
+  const generateUploadUrl = useMutation(api.generate.generateUploadUrl);
+
   const placeholder = "Type a message...";
   const canSend = message.trim().length > 0 && !disabled;
 
@@ -42,65 +51,70 @@ export function InputArea({
     textareaRef.current?.focus();
   }, []);
 
-  // Handlers
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (canSend) {
-        generateMessage();
-      }
-    }
-  }, [canSend, generateMessage]);
+  const onDeleteImage = useCallback((index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const onAttachFile = useCallback(async () => {
     // Create a file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
     input.multiple = true;
-    
+
     input.onchange = async (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (!files) return;
-      
+
       setDisabled(true);
-      
-      // Simulate upload with blank effect
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
-        
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          // Add blank placeholder first, then replace with actual image
-          setUploadedImages(prev => [...prev, ""]);
-          
-          // After a brief delay, replace blank with actual image
-          setTimeout(() => {
-            setUploadedImages(prev => {
-              const newImages = [...prev];
-              const blankIndex = newImages.lastIndexOf("");
-              if (blankIndex !== -1) {
-                newImages[blankIndex] = result;
-              }
-              return newImages;
-            });
-          }, 500); // 500ms blank effect
-        };
-        
-        reader.readAsDataURL(file);
-      }
-      
-      setDisabled(false);
+      const posturl = await generateUploadUrl();
+
+      const result = await fetch(posturl, {
+        method: "POST",
+        headers: {
+          "Content-Type": files[0].type,
+        },
+        body: files[0],
+      });
+      const { storageId } = await result.json();
+
+      setImages((prev) => {
+        const newImages = [...prev, storageId];
+        return newImages;
+      });
+
+      // Create FileReader and set up onload callback
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          setUploadedImages((prev) => [...prev, reader.result as string]);
+        }
+        setDisabled(false);
+      };
+      reader.readAsDataURL(files[0]);
     };
-    
+
     input.click();
-  }, []);
+  }, [generateUploadUrl]);
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        generateMessage();
+        setUploadedImages([]); // Clear images after sending
+        setImages([]); // Clear image storage IDs after sending
+      }
+    },
+    [generateMessage],
+  );
 
   const handleSend = useCallback(() => {
     if (canSend) {
       generateMessage();
       setUploadedImages([]); // Clear images after sending
+      setImages([]); // Clear image storage IDs after sending
     }
   }, [canSend, generateMessage]);
 
@@ -108,8 +122,8 @@ export function InputArea({
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 128) + 'px'; // max-h-32 = 128px
+      textarea.style.height = "auto";
+      textarea.style.height = Math.min(textarea.scrollHeight, 128) + "px"; // max-h-32 = 128px
     }
   }, [message]);
 
@@ -134,7 +148,7 @@ export function InputArea({
                 <div className="w-full h-full bg-muted animate-pulse" />
               )}
               <button
-                onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== index))}
+                onClick={() => onDeleteImage(index)}
                 className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center text-xs hover:bg-destructive/80"
               >
                 ×
@@ -143,7 +157,7 @@ export function InputArea({
           ))}
         </div>
       )}
-      
+
       {/* Main Input Container */}
       <div
         className={`
@@ -151,7 +165,7 @@ export function InputArea({
         ${isFocused ? "border-primary shadow-md" : "border-border"}
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}
-      > 
+      >
         {/* Input Area */}
         <div className="flex items-start p-4 space-x-3">
           {/* Left Actions */}
@@ -179,8 +193,10 @@ export function InputArea({
             <textarea
               ref={textareaRef}
               value={message}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setMessage(e.target.value)
+              }
+              onKeyDown={handleKeyPress}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder={placeholder}
@@ -195,7 +211,9 @@ export function InputArea({
               onClick={handleSend}
               disabled={!canSend}
               className={`h-9 w-9 p-0 transition-all duration-200 ${
-                canSend ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "bg-muted text-muted-foreground cursor-not-allowed"
+                canSend
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
               }`}
             >
               <Send className="h-4 w-4" />

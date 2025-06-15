@@ -14,8 +14,6 @@ const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-
-
 export const writeResponse = internalMutation({
   args: {
     user: v.string(),
@@ -63,15 +61,69 @@ export const generateMessageAction = internalAction({
       conversation: args.conversation,
     });
     const shouldGenerateName = messagesQuery.length === 1;
-    const messagesHistory: { role: "user" | "assistant"; content: string }[] =
-      [];
+
+    const messagesHistory: Array<
+      | {
+          role: "user";
+          content:
+            | string
+            | Array<
+                | { type: "text"; text: string }
+                | { type: "image"; image: string }
+              >;
+        }
+      | { role: "assistant"; content: string }
+    > = [];
+
+    let currentUserContent: Array<
+      { type: "text"; text: string } | { type: "image"; image: string }
+    > = [];
+
     for (const message of messagesQuery) {
       if (message.role === "user") {
-        messagesHistory.push({ role: "user", content: message.content });
-      } else {
-        messagesHistory.push({ role: "assistant", content: message.content });
+        if (message.isImage) {
+          const image = await ctx.storage.getUrl(
+            message.content as Id<"_storage">,
+          );
+          if (image) {
+            currentUserContent.push({ type: "image", image: image });
+          }
+        } else {
+          if (message.content.trim()) {
+            currentUserContent.push({ type: "text", text: message.content });
+          }
+
+          if (currentUserContent.length > 0) {
+            messagesHistory.push({
+              role: "user",
+              content:
+                currentUserContent.length === 1 &&
+                currentUserContent[0].type === "text"
+                  ? currentUserContent[0].text
+                  : currentUserContent,
+            });
+            currentUserContent = [];
+          }
+        }
+      } else if (message.role === "assistant") {
+        messagesHistory.push({
+          role: "assistant",
+          content: message.content,
+        });
       }
     }
+
+    if (currentUserContent.length > 0) {
+      messagesHistory.push({
+        role: "user",
+        content:
+          currentUserContent.length === 1 &&
+          currentUserContent[0].type === "text"
+            ? currentUserContent[0].text
+            : currentUserContent,
+      });
+    }
+
     const response = await streamText({
       model: openrouter.chat(args.modelName),
       messages: messagesHistory,
@@ -170,29 +222,49 @@ export const generateMessage = mutation({
   },
 });
 
-export const uploadImage = mutation({
+export const GetModels = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("models").collect();
+  },
+});
+
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const saveImage = mutation({
   args: {
     user: v.string(),
-    image: v.string(),
     conversation: v.id("conversations"),
     model: v.id("models"),
+    storageId: v.id("_storage"),
   },
+  returns: v.id("messages"),
   handler: async (ctx, args) => {
-    const image = await ctx.db.insert("messages", {
+    const imageUrl = await ctx.storage.getUrl(args.storageId);
+    if (!imageUrl) {
+      throw new Error("Image not found");
+    }
+
+    return await ctx.db.insert("messages", {
       user: args.user,
-      content: args.image,
+      content: args.storageId, // Store the storage ID instead of base64
       model: args.model,
       conversation: args.conversation,
       role: "user",
       isImage: true,
     });
-    return image;
   },
 });
 
-export const GetModels = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("models").collect();
+export const getImageUrl = query({
+  args: { storageId: v.id("_storage") },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
   },
 });

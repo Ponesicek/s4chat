@@ -84,9 +84,13 @@ const CodeBlock = React.memo(function CodeBlock({
         });
 
         // Post-process HTML for t3 theme to use sidebar background
-        const processedHtml = colorScheme === 't3' && resolvedTheme !== "dark"
-          ? html.replace(/background-color:[^;"]*/g, 'background-color:rgb(245, 237, 250)')
-          : html;
+        const processedHtml =
+          colorScheme === "t3" && resolvedTheme !== "dark"
+            ? html.replace(
+                /background-color:[^;"]*/g,
+                "background-color:rgb(245, 237, 250)",
+              )
+            : html;
 
         highlightCache.set(cacheKey, processedHtml);
         setHighlightedHtml(processedHtml);

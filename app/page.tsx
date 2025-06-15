@@ -14,6 +14,7 @@ import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Id } from "@/convex/_generated/dataModel";
 
 export default function Home() {
   return (
@@ -49,6 +50,7 @@ function SignInForm() {
 }
 
 function Content() {
+  const [images, setImages] = useState<string[]>([]);
   const models = useQuery(api.generate.GetModels, {});
   const defaultModel = models?.[0]?._id;
   const model = Cookies.get("model");
@@ -57,27 +59,49 @@ function Content() {
   }
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const sendMutation = useMutation(api.generate.generateMessage);
+  const sendImageMutation = useMutation(api.generate.saveImage);
   const createConversationMutation = useMutation(
     api.conversations.CreateConversation,
   );
   const { user } = useUser();
-  const generateMessage = useCallback(async () => {
+  const sendMessage = useCallback(async () => {
     const conversationId = await createConversationMutation({
       user: user?.id ?? "",
     });
     Cookies.set("conversation", conversationId);
-    router.push(`/conversation/${conversationId}?message=${message}`);
-  }, [router, createConversationMutation, user, message]);
 
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        generateMessage();
-      }
-    },
-    [generateMessage],
-  );
+    let model = Cookies.get("model");
+    if (!model) {
+      model = "google/gemini-2.0-flash-001";
+      Cookies.set("model", model);
+    }
+
+    for (const image of images) {
+      await sendImageMutation({
+        user: user?.id ?? "",
+        conversation: conversationId,
+        model: model as Id<"models">,
+        storageId: image as Id<"_storage">,
+      });
+    }
+    await sendMutation({
+      user: user?.id ?? "",
+      conversation: conversationId,
+      content: message.trim(),
+      model: model as Id<"models">,
+    });
+    setMessage("");
+    router.push(`/conversation/${conversationId}`);
+  }, [
+    message,
+    user?.id,
+    sendMutation,
+    sendImageMutation,
+    images,
+    router,
+    createConversationMutation,
+  ]);
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
@@ -87,9 +111,10 @@ function Content() {
           <InputArea
             message={message}
             setMessage={setMessage}
-            handleKeyPress={handleKeyPress}
             user={user}
-            generateMessage={generateMessage}
+            generateMessage={sendMessage}
+            images={images}
+            setImages={setImages}
           />
         </div>
       </div>
