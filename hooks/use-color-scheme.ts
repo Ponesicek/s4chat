@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type ColorScheme =
-  | "default"
-  | "gruvbox"
-  | "solarized"
-  | "catpuccin"
-  | "nord"
-  | "t3";
+type ColorScheme = "default" | "gruvbox" | "catpuccin" | "nord" | "t3";
 
 export function useColorScheme() {
   const [colorScheme, setColorScheme] = useState<ColorScheme>("default");
@@ -37,7 +31,6 @@ export function useColorScheme() {
     document.documentElement.classList.remove(
       "default",
       "gruvbox",
-      "solarized",
       "catpuccin",
       "nord",
       "t3",

@@ -23,6 +23,7 @@ export const writeResponse = internalMutation({
     modelName: v.string(),
     messageId: v.optional(v.id("messages")),
     isName: v.boolean(),
+    reasoning: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     if (args.isName) {
@@ -39,10 +40,12 @@ export const writeResponse = internalMutation({
         conversation: args.conversation,
         role: "assistant",
         isImage: false,
+        reasoning: args.reasoning,
       });
     }
     await ctx.db.patch(args.messageId, {
       content: args.content,
+      reasoning: args.reasoning,
     });
   },
 });
@@ -155,6 +158,7 @@ export const generateMessageAction = internalAction({
     }
 
     let message = "";
+    let reasoning = "";
     const messageId = await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
       content: message,
@@ -166,11 +170,19 @@ export const generateMessageAction = internalAction({
     });
 
     console.log("Generating message with model: " + args.modelName);
-    for await (const chunk of response.textStream) {
-      message += chunk;
+    for await (const chunk of response.fullStream) {
+      switch (chunk.type) {
+        case "text-delta":
+          message += chunk.textDelta;
+          break;
+        case "reasoning":
+          reasoning += chunk.textDelta;
+          break;
+      }
       await ctx.runMutation(internal.generate.writeResponse, {
         user: args.user,
         content: message,
+        reasoning: reasoning,
         model: args.model,
         modelName: args.modelName,
         conversation: args.conversation,

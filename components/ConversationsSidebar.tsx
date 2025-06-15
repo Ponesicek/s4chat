@@ -30,7 +30,7 @@ export function ProfileSidebarFooter() {
     <Link href="/settings" className="w-full">
       <button
         type="button"
-        className="group/profile-button flex items-center gap-3 w-full rounded-md p-3 mb-1 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
+        className="group/profile-button flex items-center gap-3 w-full rounded-md p-3 mb-1 hover:bg-accent/20 focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <span className="pointer-events-none flex items-center justify-center">
           <UserButton />
@@ -84,7 +84,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {conversations ? (
-                conversations.map((conversation) => (
+                [...conversations].reverse().map((conversation) => (
                   <SidebarMenuItem key={conversation._id}>
                     <div className="group/item relative h-9.5 flex items-center">
                       <SidebarMenuButton

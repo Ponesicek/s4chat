@@ -41,14 +41,13 @@ export default async function RootLayout({
   const colorSchemeCookie = cookieStore?.get?.("color-scheme")?.value as
     | "default"
     | "gruvbox"
-    | "solarized"
     | "catpuccin"
     | "nord"
     | "t3"
     | undefined;
   const initialColorScheme =
     colorSchemeCookie &&
-    ["default", "gruvbox", "solarized", "catpuccin", "nord", "t3"].includes(
+    ["default", "gruvbox", "catpuccin", "nord", "t3"].includes(
       colorSchemeCookie,
     )
       ? colorSchemeCookie

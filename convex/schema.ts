@@ -13,6 +13,7 @@ export default defineSchema({
     conversation: v.id("conversations"),
     role: v.union(v.literal("user"), v.literal("assistant")),
     isImage: v.boolean(),
+    reasoning: v.optional(v.string()),
   }).index("by_conversation", ["conversation"]),
   models: defineTable({
     model: v.string(),
@@ -49,7 +50,6 @@ export default defineSchema({
       colors: v.union(
         v.literal("default"),
         v.literal("gruvbox"),
-        v.literal("solarized"),
         v.literal("catpuccin"),
         v.literal("nord"),
         v.literal("t3"),

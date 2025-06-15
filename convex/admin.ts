@@ -49,41 +49,81 @@ const models = [
     pinned: true,
     provider: "openrouter" as const,
   },
-];
-
-export const patchMessage = mutation({
-  handler: async (ctx) => {
-    const msg = await ctx.db.query("messages").collect();
-    for (const message of msg) {
-      await ctx.db.patch(message._id, {
-        isImage: false,
-      });
-    }
+  {
+    model: "deepseek/deepseek-r1",
+    name: "DeepSeek R1",
+    description:
+      "DeepSeek R1 is here: Performance on par with OpenAI o1, but open-sourced and with fully open reasoning tokens. It's 671B parameters in size, with 37B active in an inference pass.",
+    input_modalities: ["text"],
+    output_modalities: ["text"],
+    created_at: "Jan 20, 2025",
+    author: "DeepSeek",
+    context_length: 128000,
+    reasoning: true,
+    reasoning_tags: [],
+    price: [45, 215],
+    pinned: true,
+    provider: "openrouter" as const,
   },
-});
+];
 
 export const updateModels = mutation({
   args: {},
   handler: async (ctx) => {
-    // Delete all existing documents from the models table
     const existingModels = await ctx.db.query("models").collect();
-    for (const model of existingModels) {
-      await ctx.db.delete(model._id);
-    }
 
-    console.log(`Deleted ${existingModels.length} existing models`);
-
-    // Insert new models data
-    const insertPromises = models.map((model) =>
-      ctx.db.insert("models", model),
+    // Create a map of existing models by their model identifier
+    const existingModelMap = new Map(
+      existingModels.map((model) => [model.model, model]),
     );
 
-    const insertedIds = await Promise.all(insertPromises);
-    console.log(`Inserted ${insertedIds.length} new models`);
+    // Create a set of model identifiers from the models array
+    const newModelIds = new Set(models.map((m) => m.model));
+
+    let updatedCount = 0;
+    let insertedCount = 0;
+    let deletedCount = 0;
+
+    // Update existing models or insert new ones
+    for (const model of models) {
+      const existingModel = existingModelMap.get(model.model);
+
+      if (existingModel) {
+        // Model exists, update it
+        await ctx.db.patch(existingModel._id, {
+          name: model.name,
+          description: model.description,
+          input_modalities: model.input_modalities,
+          output_modalities: model.output_modalities,
+          created_at: model.created_at,
+          author: model.author,
+          context_length: model.context_length,
+          reasoning: model.reasoning,
+          reasoning_tags: model.reasoning_tags,
+          price: model.price,
+          pinned: model.pinned,
+          provider: model.provider,
+        });
+        updatedCount++;
+      } else {
+        // Model doesn't exist, insert it
+        await ctx.db.insert("models", model);
+        insertedCount++;
+      }
+    }
+
+    // Delete models that exist in database but not in the models array
+    for (const existingModel of existingModels) {
+      if (!newModelIds.has(existingModel.model)) {
+        await ctx.db.delete(existingModel._id);
+        deletedCount++;
+      }
+    }
 
     return {
-      deleted: existingModels.length,
-      inserted: insertedIds.length,
+      updated: updatedCount,
+      inserted: insertedCount,
+      deleted: deletedCount,
       models: models,
     };
   },

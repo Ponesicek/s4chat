@@ -13,6 +13,7 @@ import { Paperclip, Send } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
+import Image from "next/image";
 
 export function InputArea({
   message,
@@ -51,10 +52,13 @@ export function InputArea({
     textareaRef.current?.focus();
   }, []);
 
-  const onDeleteImage = useCallback((index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
-    setImages((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+  const onDeleteImage = useCallback(
+    (index: number) => {
+      setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+      setImages((prev) => prev.filter((_, i) => i !== index));
+    },
+    [setImages, setUploadedImages],
+  );
 
   const onAttachFile = useCallback(async () => {
     // Create a file input element
@@ -96,7 +100,7 @@ export function InputArea({
     };
 
     input.click();
-  }, [generateUploadUrl]);
+  }, [generateUploadUrl, setImages]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
@@ -107,7 +111,7 @@ export function InputArea({
         setImages([]); // Clear image storage IDs after sending
       }
     },
-    [generateMessage],
+    [generateMessage, setUploadedImages, setImages],
   );
 
   const handleSend = useCallback(() => {
@@ -116,7 +120,7 @@ export function InputArea({
       setUploadedImages([]); // Clear images after sending
       setImages([]); // Clear image storage IDs after sending
     }
-  }, [canSend, generateMessage]);
+  }, [canSend, generateMessage, setUploadedImages, setImages]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -138,10 +142,12 @@ export function InputArea({
               className="relative w-16 h-16 rounded-lg border overflow-hidden bg-muted"
             >
               {image ? (
-                <img
+                <Image
                   src={image}
                   alt={`Uploaded ${index + 1}`}
                   className="w-full h-full object-cover transition-opacity duration-300"
+                  width={64}
+                  height={64}
                 />
               ) : (
                 // Blank effect placeholder

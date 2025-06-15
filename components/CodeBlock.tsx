@@ -16,7 +16,6 @@ const getShikiTheme = (colorScheme: string, isDark: boolean) => {
   const themeMap = {
     default: isDark ? "github-dark" : "github-light",
     gruvbox: isDark ? "gruvbox-dark-medium" : "gruvbox-light-medium",
-    solarized: isDark ? "solarized-dark" : "solarized-light",
     catpuccin: isDark ? "catppuccin-mocha" : "catppuccin-latte",
     nord: isDark ? "nord" : "catppuccin-latte",
     t3: isDark ? "rose-pine" : "rose-pine-dawn", // Use GitHub theme for T3 (clean and modern)
