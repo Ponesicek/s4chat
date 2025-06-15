@@ -14,6 +14,8 @@ const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
+
+
 export const writeResponse = internalMutation({
   args: {
     user: v.string(),
@@ -38,6 +40,7 @@ export const writeResponse = internalMutation({
         model: args.model,
         conversation: args.conversation,
         role: "assistant",
+        isImage: false,
       });
     }
     await ctx.db.patch(args.messageId, {
@@ -155,6 +158,7 @@ export const generateMessage = mutation({
       model: model._id,
       conversation: args.conversation,
       role: "user",
+      isImage: false,
     });
     await ctx.scheduler.runAfter(0, internal.generate.generateMessageAction, {
       user: args.user,
@@ -163,6 +167,26 @@ export const generateMessage = mutation({
       modelName: model.model,
       conversation: args.conversation,
     });
+  },
+});
+
+export const uploadImage = mutation({
+  args: {
+    user: v.string(),
+    image: v.string(),
+    conversation: v.id("conversations"),
+    model: v.id("models"),
+  },
+  handler: async (ctx, args) => {
+    const image = await ctx.db.insert("messages", {
+      user: args.user,
+      content: args.image,
+      model: args.model,
+      conversation: args.conversation,
+      role: "user",
+      isImage: true,
+    });
+    return image;
   },
 });
 

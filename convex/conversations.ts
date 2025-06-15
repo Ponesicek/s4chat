@@ -72,6 +72,7 @@ export const GetMessagesPaginatedWithModels = query({
         }),
         conversation: v.id("conversations"),
         role: v.union(v.literal("user"), v.literal("assistant")),
+        isImage: v.boolean(),
       }),
     ),
     isDone: v.boolean(),
@@ -135,6 +136,7 @@ export const GetMessages = query({
       model: v.id("models"),
       conversation: v.id("conversations"),
       role: v.union(v.literal("user"), v.literal("assistant")),
+      isImage: v.boolean(),
     }),
   ),
   handler: async (ctx, args) => {

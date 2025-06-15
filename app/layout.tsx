@@ -47,6 +47,7 @@ export default function RootLayout({
           fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
           fontSize: '16px'
         }}
+        suppressHydrationWarning={true}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <ClerkProvider dynamic>

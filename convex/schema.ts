@@ -12,6 +12,7 @@ export default defineSchema({
     model: v.id("models"),
     conversation: v.id("conversations"),
     role: v.union(v.literal("user"), v.literal("assistant")),
+    isImage: v.boolean(),
   }).index("by_conversation", ["conversation"]),
   models: defineTable({
     model: v.string(),
@@ -37,4 +38,25 @@ export default defineSchema({
     name: v.string(),
     tags: v.array(v.string()),
   }).index("by_user", ["user"]),
+  users: defineTable({
+    openrouter_api_key: v.string(),
+    theme: v.object({
+      theme: v.union(v.literal("light"), v.literal("dark"), v.literal("system")),
+      colors: v.union(
+        v.literal("default"),
+        v.literal("gruvbox"),
+        v.literal("solarized"),
+        v.literal("catpuccin"),
+        v.literal("nord"),
+        v.literal("t3"),
+      ),
+      font: v.union(
+        v.literal("inter"),
+        v.literal("roboto"),
+        v.literal("system"),
+        v.literal("mono"),
+      ),
+      fontSize: v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
+    }),
+  }),
 });
