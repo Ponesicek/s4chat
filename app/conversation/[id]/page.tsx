@@ -295,12 +295,11 @@ export default function ConversationPage() {
     }
   }, [userId, conversations, conversationAccessible, router]);
 
-  if (!(user?.id && conversationId)) {
-    useEffect(() => {
+  useEffect(() => {
+      if (!(user?.id && conversationId)) {
       router.replace("/");
-    }, [router]);
-    return null;
-  }
+    }
+  }, [router, user?.id, conversationId]);
 
   if (!user) {
     return (
