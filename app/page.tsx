@@ -86,11 +86,15 @@ function Content() {
         storageId: image as Id<"_storage">,
       });
     }
+
+    const openrouterKey = localStorage.getItem("openrouter-key");
+
     await sendMutation({
       user: user?.id ?? "",
       conversation: conversationId,
       content: message.trim(),
       model: model as Id<"models">,
+      apiKey: openrouterKey || "",
     });
     setMessage("");
     router.push(`/conversation/${conversationId}`);

@@ -10,10 +10,6 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
-
 export const writeResponse = internalMutation({
   args: {
     user: v.string(),
@@ -57,6 +53,7 @@ export const generateMessageAction = internalAction({
     model: v.id("models"),
     modelName: v.string(),
     conversation: v.id("conversations"),
+    apiKey: v.string(),
   },
   handler: async (ctx, args) => {
     const messagesQuery = await ctx.runQuery(api.conversations.GetMessages, {
@@ -127,11 +124,16 @@ export const generateMessageAction = internalAction({
       });
     }
 
-    console.log(process.env.OPENROUTER_API_KEY);
+    if (!args.apiKey) {
+      args.apiKey = process.env.OPENROUTER_API_KEY || "";
+    }
+
+    const openrouter = createOpenRouter({
+      apiKey: args.apiKey,
+    });
     const response = await streamText({
       model: openrouter.chat(args.modelName),
       messages: messagesHistory,
-      
     });
 
     if (!response) {
@@ -207,6 +209,7 @@ export const generateMessage = mutation({
     content: v.string(),
     model: v.id("models"),
     conversation: v.id("conversations"),
+    apiKey: v.string(),
   },
   handler: async (ctx, args) => {
     const model = await ctx.db
@@ -232,6 +235,7 @@ export const generateMessage = mutation({
       model: model._id,
       modelName: model.model,
       conversation: args.conversation,
+      apiKey: args.apiKey,
     });
   },
 });

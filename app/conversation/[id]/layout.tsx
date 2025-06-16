@@ -40,11 +40,16 @@ export default function ConversationLayout({
         storageId: image as Id<"_storage">,
       });
     }
+
+    const openrouterKey = localStorage.getItem("openrouter-key");
+
+
     await sendMutation({
       user: user.id,
       conversation: conversationId,
       content: draft.trim(),
       model: model as Id<"models">,
+      apiKey: openrouterKey || "",
     });
     setDraft("");
   }, [

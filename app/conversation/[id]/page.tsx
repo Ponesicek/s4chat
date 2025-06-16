@@ -30,7 +30,6 @@ import { ChevronDown, Copy, GitBranch, RotateCcw } from "lucide-react";
 interface ChatMessageProps {
   content: string;
   isImage?: boolean;
-  user?: Id<"users">;
 }
 
 const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
@@ -57,13 +56,13 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const UserChatMessage = ({ content, isImage, user }: ChatMessageProps) => {
+const UserChatMessage = ({ content, isImage }: ChatMessageProps) => {
+  const { user } = useUser();
+  const userId = user?.id;
   // Fetch image data unconditionally to satisfy React hooks rules.
   const image = useQuery(
     api.conversations.GetImage,
-    isImage
-      ? { user: user ?? "", image: content as Id<"_storage"> }
-      : ("skip" as const),
+    isImage ? { user: userId ?? "", image: content as Id<"_storage"> } : ("skip" as const),
   );
 
   if (isImage) {
@@ -244,11 +243,15 @@ export default function ConversationPage() {
       Cookies.set("model", model);
     }
 
+    const openrouterKey = localStorage.getItem("openrouter-key");
+
+
     await generateMessageMutation({
       user: user.id,
       content: message.trim(),
       model: model as Id<"models">,
       conversation: conversationId,
+      apiKey: openrouterKey || "",
     });
     setMessage("");
   }, [message, user?.id, generateMessageMutation, conversationId]);
@@ -398,7 +401,6 @@ export default function ConversationPage() {
                             <UserChatMessage
                               content={msg.content}
                               isImage={msg.isImage}
-                              user={user?.id as Id<"users">}
                             />
                           </div>
                         </div>
