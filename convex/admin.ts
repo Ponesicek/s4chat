@@ -199,6 +199,20 @@ const models = [
     provider: "openrouter" as const,
   },
   {
+    model: "gpt-image-1",
+    name: "GPT Image 1",
+    description:
+      "GPT Image 1 is our new state-of-the-art image generation model. It is a natively multimodal language model that accepts both text and image inputs, and produces image outputs.",
+    input_modalities: ["text", "image"],
+    output_modalities: ["image"],
+    created_at: "Apr 23, 2025",
+    author: "OpenAI",
+    context_length: 0,
+    reasoning: false,
+    pinned: true,
+    provider: "openai" as const,
+  },
+  {
     model: "x-ai/grok-3-beta",
     name: "Grok 3",
     description:

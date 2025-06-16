@@ -1,8 +1,5 @@
 export const getModelIcon = (provider: string, author: string) => {
-  if (
-    provider === "openrouter" &&
-    (author.toLowerCase().includes("openai") || author === "OpenAI")
-  ) {
+  if (author === "OpenAI") {
     return (
       <div className="w-8 h-8 rounded-full flex items-center justify-center">
         <svg
@@ -18,7 +15,7 @@ export const getModelIcon = (provider: string, author: string) => {
   }
 
   // Check for Google/Gemini models
-  if (provider === "google" || author === "Google") {
+  if (author === "Google") {
     return (
       <div className="w-8 h-8 rounded-full flex items-center justify-center">
         <svg
@@ -34,7 +31,7 @@ export const getModelIcon = (provider: string, author: string) => {
   }
 
   // Check for Anthropic/Claude models
-  if (provider === "anthropic" || author === "Anthropic") {
+  if (author === "Anthropic") {
     return (
       <div className="w-8 h-8 rounded-full flex items-center justify-center">
         <svg

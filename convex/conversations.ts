@@ -82,6 +82,7 @@ export const GetMessagesPaginatedWithModels = query({
             v.literal("openrouter"),
             v.literal("anthropic"),
             v.literal("google"),
+            v.literal("openai"),
           ),
         }),
         conversation: v.id("conversations"),

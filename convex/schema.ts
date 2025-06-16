@@ -42,6 +42,7 @@ export default defineSchema({
       v.literal("openrouter"),
       v.literal("anthropic"),
       v.literal("google"),
+      v.literal("openai"),
     ),
   }),
   conversations: defineTable({
