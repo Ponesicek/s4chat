@@ -5,10 +5,13 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { v } from "convex/values";
-import { generateText, streamText } from "ai";
+import { generateText, streamText, experimental_createMCPClient as createMCPClient,
+} from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js"
+import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 
 export const writeResponse = internalMutation({
   args: {
@@ -45,6 +48,16 @@ export const writeResponse = internalMutation({
     });
   },
 });
+
+const profileId = "cool-lamprey-NdVz6F"
+const apiKey = "45d37348-e7cc-4d4c-b083-8ccf5c9e1029"
+const serverName = "@yokingma/time-mcp"
+
+const transport = new StreamableHTTPClientTransport(
+  `https://server.smithery.ai/${serverName}/mcp?profile=${profileId}&api_key=${apiKey}` as unknown as URL
+  //`https://server.smithery.ai/@yokingma/time-mcp/mcp?api_key=0508d1d7-669a-415f-8833-03a0d6a4b734` as unknown as URL
+)
+
 
 export const generateMessageAction = internalAction({
   args: {
@@ -131,9 +144,27 @@ export const generateMessageAction = internalAction({
     const openrouter = createOpenRouter({
       apiKey: args.apiKey,
     });
+
+    const client = new Client({
+      name: "Test Client",
+      version: "1.0.0"
+    })
+    await client.connect(transport)
+    const mcpClient = await createMCPClient({
+      transport: transport,
+    })
+    const tools = await mcpClient.tools()
+    console.log(tools)
     const response = await streamText({
       model: openrouter.chat(args.modelName),
       messages: messagesHistory,
+      tools: tools,
+      onFinish: async () => {
+        await mcpClient.close();
+      },
+      onError: async () => {
+        await mcpClient.close();
+      },
     });
 
     if (!response) {
