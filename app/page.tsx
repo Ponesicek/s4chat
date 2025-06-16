@@ -65,6 +65,7 @@ function Content() {
     api.conversations.CreateConversation,
   );
   const { user } = useUser();
+
   const sendMessage = useCallback(async () => {
     const conversationId = await createConversationMutation({
       user: user?.id ?? "",

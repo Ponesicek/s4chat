@@ -127,6 +127,7 @@ export const generateMessageAction = internalAction({
       });
     }
 
+    console.log(process.env.OPENROUTER_API_KEY);
     const response = await streamText({
       model: openrouter.chat(args.modelName),
       messages: messagesHistory,
