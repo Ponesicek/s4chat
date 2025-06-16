@@ -14,6 +14,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
 import Image from "next/image";
+import { Mcp } from "./Mcp";
 
 export function InputArea({
   message,
@@ -192,6 +193,10 @@ export function InputArea({
                 <div className="w-4 h-4 bg-muted rounded-full animate-pulse" />
               )}
             </div>
+            <div className="flex items-center justify-center h-9 w-9">
+                <Mcp />
+            </div>
+            
           </div>
 
           {/* Text Input */}

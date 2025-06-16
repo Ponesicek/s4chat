@@ -11,7 +11,129 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js"
-import { Client } from "@modelcontextprotocol/sdk/client/index.js"
+
+// Global MCP client singleton - only initialized in actions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+let globalMCPClient: any[] | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let globalTools: Record<string, any> = {};
+let mcpInitPromise: Promise<void> | null = null;
+
+// Define MCP server configurations for better type safety and maintainability
+interface MCPServerConfig {
+  name: string;
+  url: string;
+  config?: {
+    type?: string;
+    properties?: Record<string, unknown>;
+    description?: string;
+    [key: string]: unknown;
+  };
+}
+
+const mcpServerConfigs: MCPServerConfig[] = [
+  {
+    name: "context7",
+    url: "https://server.smithery.ai/@upstash/context7-mcp/mcp"
+  },
+  {
+    name: "exa", 
+    url: "https://server.smithery.ai/exa/mcp",
+    config: {
+      properties: {
+        exaApiKey: process.env.EXA_API_KEY || "",
+      }
+    }
+  },
+  {
+    name: "sequential thinking",
+    url: "https://server.smithery.ai/@smithery-ai/server-sequential-thinking/mcp"
+  }
+];
+
+async function initializeMCPClient() {
+  if (mcpInitPromise) {
+    return mcpInitPromise;
+  }
+
+  mcpInitPromise = (async () => {
+    try {
+      console.log("Initializing MCP clients...");
+      
+      const apiKey = process.env.SMITHERY_API_KEY;
+      if (!apiKey) {
+        throw new Error("SMITHERY_API_KEY environment variable is required");
+      }
+
+      // Initialize all clients in parallel for better performance
+      const clientPromises = mcpServerConfigs.map(async (serverConfig) => {
+        try {
+          // Build URL with API key and optional config parameters
+          const url = new URL(serverConfig.url);
+          url.searchParams.set('api_key', apiKey);
+          
+          // Add config parameters to URL if provided
+          if (serverConfig.config) {
+            // Add any additional config as query parameters (skip schema-related keys)
+            Object.entries(serverConfig.config).forEach(([key, value]) => {
+              if (!['type', 'properties', 'description', 'items', 'default'].includes(key) && value !== undefined && value !== '') {
+                url.searchParams.set(key, String(value));
+              }
+            });
+          }
+          
+          const transport = new StreamableHTTPClientTransport(url);
+          
+          console.log(`Initializing MCP client for ${serverConfig.name}...`);
+          const client = await createMCPClient({ transport });
+          
+          const tools = await client.tools();
+          console.log(`Initialized MCP client for ${serverConfig.name} with ${Object.keys(tools).length} tools`);
+          
+          return { name: serverConfig.name, client, tools };
+        } catch (error) {
+          console.error(`Failed to initialize MCP client for ${serverConfig.name}:`, error);
+          return null;
+        }
+      });
+
+      // Wait for all client initializations to complete
+      const results = await Promise.all(clientPromises);
+      
+      // Filter out failed initializations and organize successful ones
+      const successfulClients = results.filter((result): result is NonNullable<typeof result> => result !== null);
+      
+      if (successfulClients.length === 0) {
+        throw new Error("Failed to initialize any MCP clients");
+      }
+
+      // Update global state with successful clients
+      globalMCPClient = successfulClients.map(result => result.client);
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       globalTools = successfulClients.reduce((acc, result) => {
+         // Flatten tools from all clients into a single object
+         Object.assign(acc, result.tools);
+         return acc;
+       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       }, {} as Record<string, any>);
+
+      console.log(
+        `Successfully initialized ${successfulClients.length}/${mcpServerConfigs.length} MCP clients:`,
+        successfulClients.map(r => r.name).join(", ")
+      );
+      console.log("Available tools:", Object.keys(globalTools));
+
+    } catch (error) {
+      console.error("Failed to initialize MCP clients:", error);
+      globalMCPClient = null;
+      globalTools = {};
+      throw error; // Re-throw to allow caller to handle
+    }
+  })();
+
+  return mcpInitPromise;
+}
+
 
 export const writeResponse = internalMutation({
   args: {
@@ -23,6 +145,10 @@ export const writeResponse = internalMutation({
     messageId: v.optional(v.id("messages")),
     isName: v.boolean(),
     reasoning: v.optional(v.string()),
+    status: v.object({
+      type: v.string(),
+      message: v.string(),
+    }),
   },
   handler: async (ctx, args) => {
     if (args.isName) {
@@ -42,22 +168,41 @@ export const writeResponse = internalMutation({
         reasoning: args.reasoning,
       });
     }
+    if (args.status) {
+      switch (args.status.type) {
+        case "pending":
+          await ctx.db.patch(args.messageId, {
+            status: {
+              type: "pending",
+              message: args.status.message,
+            },
+          });
+          break;
+        case "completed":
+          await ctx.db.patch(args.messageId, {
+            status: {
+              type: "completed",
+            },
+          });
+          break;
+        case "error":
+          await ctx.db.patch(args.messageId, {
+            status: {
+              type: "error",
+              message: args.status.message,
+            },
+          });
+          break;
+        default:
+          break;
+      }
+    }
     await ctx.db.patch(args.messageId, {
       content: args.content,
       reasoning: args.reasoning,
     });
   },
 });
-
-const profileId = "cool-lamprey-NdVz6F"
-const apiKey = "45d37348-e7cc-4d4c-b083-8ccf5c9e1029"
-const serverName = "@yokingma/time-mcp"
-
-const transport = new StreamableHTTPClientTransport(
-  `https://server.smithery.ai/${serverName}/mcp?profile=${profileId}&api_key=${apiKey}` as unknown as URL
-  //`https://server.smithery.ai/@yokingma/time-mcp/mcp?api_key=0508d1d7-669a-415f-8833-03a0d6a4b734` as unknown as URL
-)
-
 
 export const generateMessageAction = internalAction({
   args: {
@@ -67,6 +212,7 @@ export const generateMessageAction = internalAction({
     modelName: v.string(),
     conversation: v.id("conversations"),
     apiKey: v.string(),
+    useMCP: v.boolean(),
   },
   handler: async (ctx, args) => {
     const messagesQuery = await ctx.runQuery(api.conversations.GetMessages, {
@@ -145,33 +291,32 @@ export const generateMessageAction = internalAction({
       apiKey: args.apiKey,
     });
 
-    const client = new Client({
-      name: "Test Client",
-      version: "1.0.0"
-    })
-    await client.connect(transport)
-    const mcpClient = await createMCPClient({
-      transport: transport,
-    })
-    const tools = await mcpClient.tools()
-    console.log(tools)
-    const response = await streamText({
-      model: openrouter.chat(args.modelName),
-      messages: messagesHistory,
-      tools: tools,
-      onFinish: async () => {
-        await mcpClient.close();
-      },
-      onError: async () => {
-        await mcpClient.close();
-      },
-    });
-
+    let response;
+    let tools;
+    if (args.useMCP) {
+      // Ensure MCP client is ready (non-blocking if already initialized)
+      await initializeMCPClient();
+      
+      tools = Object.keys(globalTools).length > 0 ? globalTools : undefined;
+      
+      response = await streamText({
+        model: openrouter.chat(args.modelName),
+        messages: messagesHistory,
+        tools: tools,
+        maxSteps: 10,
+      });
+    } else {
+      response = await streamText({
+        model: openrouter.chat(args.modelName),
+        messages: messagesHistory,
+        maxSteps: 10,
+      });
+    }
     if (!response) {
       return;
     }
 
-    let namePromise;
+    let namePromise: Promise<void> | undefined;
     if (shouldGenerateName) {
       namePromise = generateText({
         model: openrouter.chat("google/gemini-2.0-flash-001"),
@@ -187,13 +332,23 @@ export const generateMessageAction = internalAction({
             modelName: args.modelName,
             conversation: args.conversation,
             isName: true,
+            status: {
+              type: "pending",
+              message: "Generating name...",
+            },
           });
         }
+      }).catch((error) => {
+        console.error("Error generating conversation name:", error);
       });
     }
 
     let message = "";
     let reasoning = "";
+    let status = {
+      type: "pending",
+      message: "Generating message...",
+    };
     const messageId = await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
       content: message,
@@ -202,33 +357,104 @@ export const generateMessageAction = internalAction({
       conversation: args.conversation,
       messageId: undefined,
       isName: false,
+      status: status,
     });
 
     console.log("Generating message with model: " + args.modelName);
-    for await (const chunk of response.fullStream) {
-      switch (chunk.type) {
-        case "text-delta":
-          message += chunk.textDelta;
-          break;
-        case "reasoning":
-          reasoning += chunk.textDelta;
-          break;
+    try {
+      for await (const chunk of response.fullStream) {
+        switch (chunk.type) {
+          case "text-delta":
+            message += chunk.textDelta;
+            status = {
+              type: "pending",
+              message: `Generating...`,
+            };
+            break;
+          case "reasoning":
+            reasoning += chunk.textDelta;
+            status = {
+              type: "pending",
+              message: `Reasoning...`,
+            };
+            break;
+          case "tool-call":
+            console.log("Tool call:", chunk.toolName, "with args:", JSON.stringify(chunk.args));
+            status = {
+              type: "pending",
+              message: `Calling ${chunk.toolName}...`,
+            };
+            break;
+          case "tool-result":
+            console.log("Tool result for:", chunk.toolName, "result:", JSON.stringify(chunk.result).substring(0, 200) + "...");
+            status = {
+              type: "pending",
+              message: `Processing ${chunk.toolName} response...`,
+            };
+            break;
+          case "error":
+            console.error("Stream error:", chunk.error);
+            status = {
+              type: "error",
+              message: `Error: ${chunk.error}`,
+            };
+            break;
+          default:
+            console.log("Unknown chunk type:", chunk.type);
+            break;
+        }
+        await ctx.runMutation(internal.generate.writeResponse, {
+          user: args.user,
+          content: message,
+          reasoning: reasoning,
+          model: args.model,
+          modelName: args.modelName,
+          conversation: args.conversation,
+          messageId: messageId as Id<"messages">,
+          isName: false,
+          status: status,
+        });
       }
+    } catch (error) {
+      console.error("Error in stream processing:", error);
       await ctx.runMutation(internal.generate.writeResponse, {
         user: args.user,
-        content: message,
+        content: message || "Error occurred during generation",
         reasoning: reasoning,
         model: args.model,
         modelName: args.modelName,
         conversation: args.conversation,
         messageId: messageId as Id<"messages">,
         isName: false,
+        status: {
+          type: "error",
+          message: error instanceof Error ? error.message : "Unknown error occurred",
+        },
       });
+      return message;
     }
+    await ctx.runMutation(internal.generate.writeResponse, {
+      user: args.user,
+      content: message,
+      reasoning: reasoning,
+      model: args.model,
+      modelName: args.modelName,
+      conversation: args.conversation,
+      messageId: messageId as Id<"messages">,
+      isName: false,
+      status: {
+        type: "completed",
+        message: "Message generated",
+      },
+    });
+
 
     if (namePromise) {
       await namePromise;
     }
+
+    // Note: We keep the global MCP client running for performance
+    // It will be cleaned up when the process shuts down
 
     return message;
   },
@@ -241,6 +467,7 @@ export const generateMessage = mutation({
     model: v.id("models"),
     conversation: v.id("conversations"),
     apiKey: v.string(),
+    useMCP: v.boolean(),
   },
   handler: async (ctx, args) => {
     const model = await ctx.db
@@ -259,6 +486,10 @@ export const generateMessage = mutation({
       conversation: args.conversation,
       role: "user",
       isImage: false,
+      status: {
+        type: "pending",
+        message: "Generating message...",
+      },
     });
     await ctx.scheduler.runAfter(0, internal.generate.generateMessageAction, {
       user: args.user,
@@ -267,6 +498,7 @@ export const generateMessage = mutation({
       modelName: model.model,
       conversation: args.conversation,
       apiKey: args.apiKey,
+      useMCP: args.useMCP,
     });
   },
 });

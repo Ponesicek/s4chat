@@ -95,6 +95,7 @@ function Content() {
       content: message.trim(),
       model: model as Id<"models">,
       apiKey: openrouterKey || "",
+      useMCP: Cookies.get("mcp") === "true",
     });
     setMessage("");
     router.push(`/conversation/${conversationId}`);

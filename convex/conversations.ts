@@ -20,6 +20,18 @@ export const GetMessagesPaginated = query({
         role: v.union(v.literal("user"), v.literal("assistant")),
         isImage: v.boolean(),
         reasoning: v.optional(v.string()),
+        status: v.optional(v.union( 
+          v.object({
+            type: v.literal("pending"),
+            message: v.string(),
+          }),
+          v.object({
+            type: v.literal("completed"),
+          }),
+          v.object({
+            type: v.literal("error"),
+            message: v.string(),
+          }))),
       }),
     ),
     isDone: v.boolean(),
@@ -76,6 +88,18 @@ export const GetMessagesPaginatedWithModels = query({
         role: v.union(v.literal("user"), v.literal("assistant")),
         isImage: v.boolean(),
         reasoning: v.optional(v.string()),
+        status: v.optional(v.union( 
+          v.object({
+            type: v.literal("pending"),
+            message: v.string(),
+          }),
+          v.object({
+            type: v.literal("completed"),
+          }),
+          v.object({
+            type: v.literal("error"),
+            message: v.string(),
+          }))),
       }),
     ),
     isDone: v.boolean(),
@@ -141,6 +165,18 @@ export const GetMessages = query({
       role: v.union(v.literal("user"), v.literal("assistant")),
       isImage: v.boolean(),
       reasoning: v.optional(v.string()),
+      status: v.optional(v.union( 
+        v.object({
+          type: v.literal("pending"),
+          message: v.string(),
+        }),
+        v.object({
+          type: v.literal("completed"),
+        }),
+        v.object({
+          type: v.literal("error"),
+          message: v.string(),
+        }))),
     }),
   ),
   handler: async (ctx, args) => {

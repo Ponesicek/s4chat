@@ -50,6 +50,7 @@ export default function ConversationLayout({
       content: draft.trim(),
       model: model as Id<"models">,
       apiKey: openrouterKey || "",
+      useMCP: Cookies.get("mcp") === "true",
     });
     setDraft("");
   }, [

@@ -14,6 +14,18 @@ export default defineSchema({
     role: v.union(v.literal("user"), v.literal("assistant")),
     isImage: v.boolean(),
     reasoning: v.optional(v.string()),
+    status: v.optional(v.union( 
+      v.object({
+        type: v.literal("pending"),
+        message: v.string(),
+      }),
+      v.object({
+        type: v.literal("completed"),
+      }),
+      v.object({
+        type: v.literal("error"),
+        message: v.string(),
+      }))),
   }).index("by_conversation", ["conversation"]),
   models: defineTable({
     model: v.string(),
