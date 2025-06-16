@@ -1,7 +1,7 @@
 "use client";
 
-import { ReactNode, useCallback, useState } from "react";
-import { useParams } from "next/navigation";
+import { ReactNode, useCallback, useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -18,11 +18,25 @@ export default function ConversationLayout({
   const { id } = useParams(); // updates when you switch convo
   const conversationId = id as Id<"conversations">;
   const { user } = useUser();
+  const router = useRouter();
 
   const [draft, setDraft] = useState(""); // stays mounted → preserved
   const sendMutation = useMutation(api.generate.generateMessage);
   const sendImageMutation = useMutation(api.generate.saveImage);
   const [images, setImages] = useState<string[]>([]);
+
+  // Keyboard shortcut: Ctrl+Shift+O to redirect to home
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'O') {
+        event.preventDefault();
+        router.push('/');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [router]);
   const sendMessage = useCallback(async () => {
     if (!draft.trim() || !user?.id) return;
 

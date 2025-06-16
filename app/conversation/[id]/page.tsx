@@ -26,10 +26,15 @@ import Image from "next/image";
 import { getModelIcon } from "@/components/ModelIcon";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Copy, GitBranch, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 
 interface ChatMessageProps {
   content: string;
   isImage?: boolean;
+  status?: {
+    type: "pending" | "completed" | "error";
+    message?: string;
+  };
 }
 
 const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
@@ -86,7 +91,16 @@ const UserChatMessage = ({ content, isImage }: ChatMessageProps) => {
   );
 };
 
-const AssistantChatMessage = React.memo(({ content }: ChatMessageProps) => {
+const AssistantChatMessage = React.memo(({ content, status }: ChatMessageProps) => {
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success("Copied to clipboard");
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  }, [content]);
+
   // Memoize the components object to prevent ReactMarkdown from re-rendering
   const markdownComponents = React.useMemo(
     () => ({
@@ -125,29 +139,49 @@ const AssistantChatMessage = React.memo(({ content }: ChatMessageProps) => {
       >
         {content}
       </ReactMarkdown>
-      <div className="items-center  justify-between mt-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="border-0 mr-2 hover:bg-primary/10"
-        >
-          <Copy className="w-4 h-4 text-foreground" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="border-0 mr-2 hover:bg-primary/10"
-        >
-          <GitBranch className="w-4 h-4 text-foreground" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="border-0 hover:bg-primary/10"
-        >
-          <RotateCcw className="w-4 h-4 text-foreground" />
-        </Button>
+      <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="border-0 hover:bg-primary/10"
+            onClick={handleCopy}
+          >
+              <Copy className="w-4 h-4 text-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="border-0 hover:bg-primary/10"
+          >
+            <GitBranch className="w-4 h-4 text-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="border-0 hover:bg-primary/10"
+          >
+            <RotateCcw className="w-4 h-4 text-foreground" />
+          </Button>
+        </div>
+        {status && status.type !== "completed" && (
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+            {status.type === "pending" && (
+              <>
+                <div className="w-3 h-3 animate-spin border border-current border-t-transparent rounded-full"></div>
+                <span>{status.message || "Generating..."}</span>
+              </>
+            )}
+            {status.type === "error" && (
+              <>
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-red-500">{status.message || "Error occurred"}</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
+
     </div>
   );
 });
@@ -252,6 +286,7 @@ export default function ConversationPage() {
       model: model as Id<"models">,
       conversation: conversationId,
       apiKey: openrouterKey || "",
+      useMCP: Cookies.get("mcp") === "true",
     });
     setMessage("");
   }, [message, user?.id, generateMessageMutation, conversationId]);
@@ -447,7 +482,7 @@ export default function ConversationPage() {
                             {msg.reasoning && (
                               <ReasoningBox>{msg.reasoning}</ReasoningBox>
                             )}
-                            <AssistantChatMessage content={msg.content} />
+                            <AssistantChatMessage content={msg.content} status={msg.status} />
                           </div>
                         </div>
                       </div>

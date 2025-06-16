@@ -115,6 +115,67 @@ export function InputArea({
     [generateMessage, setUploadedImages, setImages],
   );
 
+  const handlePaste = useCallback(
+    async (e: React.ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      // Check for image files in clipboard
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        // Handle image paste
+        if (item.type.startsWith('image/')) {
+          e.preventDefault(); // Prevent default paste behavior for images
+          
+          const file = item.getAsFile();
+          if (!file) continue;
+
+          setDisabled(true);
+          
+          try {
+            const posturl = await generateUploadUrl();
+
+            const result = await fetch(posturl, {
+              method: "POST",
+              headers: {
+                "Content-Type": file.type,
+              },
+              body: file,
+            });
+            const { storageId } = await result.json();
+
+            setImages((prev) => {
+              const newImages = [...prev, storageId];
+              return newImages;
+            });
+
+            // Create FileReader and set up onload callback
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (reader.result) {
+                setUploadedImages((prev) => [...prev, reader.result as string]);
+              }
+              setDisabled(false);
+              // Ensure focus stays on the textarea after image processing
+              textareaRef.current?.focus();
+            };
+            reader.readAsDataURL(file);
+          } catch (error) {
+            console.error('Error uploading pasted image:', error);
+            setDisabled(false);
+            // Ensure focus stays on the textarea even if there's an error
+            textareaRef.current?.focus();
+          }
+          
+          break; // Only handle the first image
+        }
+      }
+      // Text paste will be handled by default textarea behavior
+    },
+    [generateUploadUrl, setImages],
+  );
+
   const handleSend = useCallback(() => {
     if (canSend) {
       generateMessage();
@@ -208,6 +269,7 @@ export function InputArea({
                 setMessage(e.target.value)
               }
               onKeyDown={handleKeyPress}
+              onPaste={handlePaste}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder={placeholder}

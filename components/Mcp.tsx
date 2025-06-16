@@ -52,6 +52,7 @@ export function Mcp() {
             <p className="text-xs text-muted-foreground mt-1">
               Currently supports: EXA (web search), Context7 (docs), and sequential thinking
             </p>
+            <p className="text-xs text-destructive mt-1">(Do not panic, if it looks stuck)</p>
           </div>
         </TooltipContent>
       </Tooltip>
