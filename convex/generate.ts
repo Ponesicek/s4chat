@@ -40,9 +40,9 @@ const mcpServerConfigs: MCPServerConfig[] = [
     name: "exa", 
     url: "https://server.smithery.ai/exa/mcp",
     config: {
-      properties: {
+      
         exaApiKey: process.env.EXA_API_KEY || "",
-      }
+      
     }
   },
   {
@@ -304,12 +304,14 @@ export const generateMessageAction = internalAction({
         messages: messagesHistory,
         tools: tools,
         maxSteps: 10,
+        system: "Use GFM to format your responses. Do not mention GFM in your responses."
       });
     } else {
       response = await streamText({
         model: openrouter.chat(args.modelName),
         messages: messagesHistory,
         maxSteps: 10,
+        system: "Use GFM to format your responses. Do not mention GFM in your responses."
       });
     }
     if (!response) {
