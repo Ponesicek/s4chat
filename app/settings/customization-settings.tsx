@@ -30,6 +30,98 @@ export function CustomizationSettings() {
     setFontSize,
     mounted: fontSettingsMounted,
   } = useFontSettings();
+
+  // Map of background colors for the theme preview buttons based on the chosen color scheme
+  const previewColors: Record<
+    "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+    { lightBg: string; darkBg: string }
+  > = {
+    default: {
+      lightBg: "#ffffff",
+      darkBg: "#0d1117", // slate-900 equivalent
+    },
+    gruvbox: {
+      lightBg: "#fbf1c7",
+      darkBg: "#1d2021",
+    },
+    catpuccin: {
+      lightBg: "#eff1f5", // Catpuccin latte surface0
+      darkBg: "#1e1e2e", // Catpuccin mocha base
+    },
+    nord: {
+      lightBg: "#eceff4",
+      darkBg: "#2e3440",
+    },
+    t3: {
+      lightBg: "#f9eff9",
+      darkBg: "#211c26",
+    },
+  };
+   // Map of background colors for the theme preview buttons based on the chosen color scheme
+   const previewColorsAccent: Record<
+   "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+   { lightBg: string; darkBg: string }
+ > = {
+   default: {
+     lightBg: "#0969da", // GitHub Light primary
+     darkBg: "#4493f8", // GitHub Dark primary
+   },
+   gruvbox: {
+     lightBg: "#d65d0e", // Gruvbox orange (light)
+     darkBg: "#fe8019", // Gruvbox orange (bright) for dark
+   },
+   catpuccin: {
+     lightBg: "#8839ef", // Catppuccin Latte mauve
+     darkBg: "#cba6f7", // Catppuccin Mocha mauve
+   },
+   nord: {
+     lightBg: "#5e81ac", // Nord frost blue (light)
+     darkBg: "#81a1c1", // Nord frost blue (lighter) for dark
+   },
+   t3: {
+     lightBg: "#a43e6a", // T3 primary purple (light)
+     darkBg: "#70284d", // T3 darker purple for dark
+   },
+ };
+
+  const { lightBg, darkBg } = previewColors[colorScheme];
+
+  // Text colors for the light preview (when overall theme is dark)
+  const lightFgColors: Record<
+    "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+    string
+  > = {
+    default: "#1f2328", // GitHub Light foreground
+    gruvbox: "#3c3836",
+    catpuccin: "#4c4f69",
+    nord: "#2e3440",
+    t3: "#2d1b2e",
+  };
+
+  // Foreground colours for the colour-scheme buttons so text stays readable
+  const schemeFgColors: Record<
+    "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+    { light: string; dark: string }
+  > = {
+    default: { light: "#e6edf3", dark: "#1f2328" },
+    gruvbox: { light: "#ebdbb2", dark: "#3c3836" },
+    catpuccin: { light: "#ccd6f6", dark: "#4c4f69" },
+    nord: { light: "#eceff4", dark: "#2e3440" },
+    t3: { light: "#ffffff", dark: "#2d1b2e" },
+  };
+
+  const isDark = theme === "dark";
+
+  const getBgForScheme = (
+    scheme: "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+  ) => (isDark ? previewColorsAccent[scheme].darkBg : previewColorsAccent[scheme].lightBg);
+
+  const getFgForScheme = (
+    scheme: "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+  ) => (isDark ? schemeFgColors[scheme].dark : schemeFgColors[scheme].light);
+
+  const lightTextColor = theme === "dark" ? lightFgColors[colorScheme] : "var(--foreground)";
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -151,13 +243,17 @@ export function CustomizationSettings() {
               onClick={() => setTheme("light")}
             >
               {/* Light theme preview background */}
-              <div className="absolute inset-0 bg-background"></div>
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: lightBg }}
+              ></div>
               <div className="relative w-full space-y-2 text-left z-10">
-                <div className="space-y-1">
-                  <div className="w-10 h-2 rounded-full bg-foreground" />
-                  <div className="w-16 h-2 rounded-full bg-muted" />
-                </div>
-                <span className="block text-xs text-foreground">Light</span>
+                <span
+                  className="block text-xs"
+                  style={{ color: lightTextColor }}
+                >
+                  Light
+                </span>
               </div>
             </Button>
             <Button
@@ -168,14 +264,9 @@ export function CustomizationSettings() {
               {/* Dark theme preview background - simulate dark mode */}
               <div
                 className="absolute inset-0"
-                style={{ backgroundColor: "var(--background)" }}
+                style={{ backgroundColor: darkBg }}
               ></div>
-              <div className="absolute inset-0 bg-slate-900"></div>
               <div className="relative w-full space-y-2 text-left z-10">
-                <div className="space-y-1">
-                  <div className="w-10 h-2 rounded-full bg-slate-100" />
-                  <div className="w-16 h-2 rounded-full bg-slate-600" />
-                </div>
                 <span className="block text-xs text-slate-100">Dark</span>
               </div>
             </Button>
@@ -185,13 +276,19 @@ export function CustomizationSettings() {
               onClick={() => setTheme("system")}
             >
               {/* System theme preview - gradient from light to dark */}
-              <div className="absolute inset-0 bg-gradient-to-r from-background to-slate-900"></div>
+              <div
+                className="absolute inset-0 bg-gradient-to-r"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${lightBg}, ${darkBg})`,
+                }}
+              ></div>
               <div className="relative w-full space-y-2 text-left z-10">
-                <div className="space-y-1">
-                  <div className="w-10 h-2 rounded-full bg-foreground" />
-                  <div className="w-16 h-2 rounded-full bg-muted" />
-                </div>
-                <span className="block text-xs text-foreground">System</span>
+                <span
+                  className="block text-xs"
+                  style={{ color: lightTextColor }}
+                >
+                  System
+                </span>
               </div>
             </Button>
           </div>
@@ -224,10 +321,13 @@ export function CustomizationSettings() {
             />
             <Label
               htmlFor="default"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              className="flex items-center justify-center rounded-md border-2 border-muted p-4 peer-data-[state=checked]:border-primary"
+              style={{
+                backgroundColor: getBgForScheme("default"),
+                color: getFgForScheme("default"),
+              }}
             >
-              <div className="mb-2 h-5 w-5 rounded-full bg-gray-800" />
-              <div className="text-sm font-medium">Default</div>
+              <span className="text-sm font-medium">Default</span>
             </Label>
           </div>
 
@@ -239,10 +339,13 @@ export function CustomizationSettings() {
             />
             <Label
               htmlFor="gruvbox"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              className="flex items-center justify-center rounded-md border-2 border-muted p-4 peer-data-[state=checked]:border-primary"
+              style={{
+                backgroundColor: getBgForScheme("gruvbox"),
+                color: getFgForScheme("gruvbox"),
+              }}
             >
-              <div className="mb-2 h-5 w-5 rounded-full bg-orange-600" />
-              <div className="text-sm font-medium">Gruvbox</div>
+              <span className="text-sm font-medium">Gruvbox</span>
             </Label>
           </div>
           <div>
@@ -253,30 +356,39 @@ export function CustomizationSettings() {
             />
             <Label
               htmlFor="catpuccin"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              className="flex items-center justify-center rounded-md border-2 border-muted p-4 peer-data-[state=checked]:border-primary"
+              style={{
+                backgroundColor: getBgForScheme("catpuccin"),
+                color: getFgForScheme("catpuccin"),
+              }}
             >
-              <div className="mb-2 h-5 w-5 rounded-full bg-purple-400" />
-              <div className="text-sm font-medium">Catpuccin</div>
+              <span className="text-sm font-medium">Catpuccin</span>
             </Label>
           </div>
           <div>
             <RadioGroupItem value="nord" id="nord" className="sr-only peer" />
             <Label
               htmlFor="nord"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              className="flex items-center justify-center rounded-md border-2 border-muted p-4 peer-data-[state=checked]:border-primary"
+              style={{
+                backgroundColor: getBgForScheme("nord"),
+                color: getFgForScheme("nord"),
+              }}
             >
-              <div className="mb-2 h-5 w-5 rounded-full bg-blue-500" />
-              <div className="text-sm font-medium">Nord</div>
+              <span className="text-sm font-medium">Nord</span>
             </Label>
           </div>
           <div>
             <RadioGroupItem value="t3" id="t3" className="sr-only peer" />
             <Label
               htmlFor="t3"
-              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+              className="flex items-center justify-center rounded-md border-2 border-muted p-4 peer-data-[state=checked]:border-primary"
+              style={{
+                backgroundColor: getBgForScheme("t3"),
+                color: getFgForScheme("t3"),
+              }}
             >
-              <div className="mb-2 h-5 w-5 rounded-full bg-violet-500" />
-              <div className="text-sm font-medium">T3</div>
+              <span className="text-sm font-medium">T3</span>
             </Label>
           </div>
         </RadioGroup>
