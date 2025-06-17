@@ -9,18 +9,21 @@ import React, {
 import { Button } from "@/components/ui/button";
 import { ModelBrowser } from "@/components/ModelBrowser";
 import { useUser } from "@clerk/nextjs";
-import { Paperclip, Send, X } from "lucide-react";
+import { Paperclip, Send, X, Square } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import { Mcp } from "./Mcp";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function InputArea({
   message,
   setMessage,
   generateMessage,
   setImages,
+  conversationId,
+  isGenerating,
 }: {
   message: string;
   setMessage: (message: string) => void;
@@ -28,6 +31,8 @@ export function InputArea({
   generateMessage: () => void;
   images: string[];
   setImages: Dispatch<SetStateAction<string[]>>;
+  conversationId: Id<"conversations">;
+  isGenerating?: boolean;
 }) {
   // Keep a reference to the underlying textarea so we can focus it when the component mounts.
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -42,11 +47,12 @@ export function InputArea({
   const currentModelID = Cookies.get("model");
   const currentModel = models?.find((model) => model._id === currentModelID);
 
-  // Mutation for generating upload URLs
+  // Mutation for generating upload URLs and stopping generation
   const generateUploadUrl = useMutation(api.generate.generateUploadUrl);
+  const stopGenerationMutation = useMutation(api.conversations.StopGeneration);
 
   const placeholder = "Type a message...";
-  const canSend = message.trim().length > 0 && !disabled;
+  const canSend = message.trim().length > 0 && !disabled && !isGenerating;
 
   // Focus the textarea once the component is mounted.
   useEffect(() => {
@@ -184,6 +190,16 @@ export function InputArea({
     }
   }, [canSend, generateMessage, setUploadedImages, setImages]);
 
+  const handleStop = useCallback(async () => {
+    try {
+      await stopGenerationMutation({
+        conversation: conversationId,
+      });
+    } catch (error) {
+      console.error("Failed to stop generation:", error);
+    }
+  }, [stopGenerationMutation, conversationId]);
+
   // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -280,17 +296,26 @@ export function InputArea({
 
           {/* Right Actions */}
           <div className="flex items-center space-x-2">
-            <Button
-              onClick={handleSend}
-              disabled={!canSend}
-              className={`h-9 w-9 p-0 transition-all duration-200 ${
-                canSend
-                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                  : "bg-muted text-muted-foreground cursor-not-allowed"
-              }`}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            {isGenerating ? (
+              <Button
+                onClick={handleStop}
+                className="h-9 w-9 p-0 bg-red-500 hover:bg-red-600 text-white"
+              >
+                <Square className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSend}
+                disabled={!canSend}
+                className={`h-9 w-9 p-0 transition-all duration-200 ${
+                  canSend
+                    ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
+                }`}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

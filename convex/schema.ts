@@ -49,5 +49,6 @@ export default defineSchema({
     user: v.string(),
     name: v.string(),
     tags: v.array(v.string()),
+    cancelled: v.optional(v.boolean()),
   }).index("by_user", ["user"]),
 });

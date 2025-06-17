@@ -101,7 +101,6 @@ const UserChatMessage = ({ content, isImage, branchedFrom }: ChatMessageProps) =
         apiKey: Cookies.get("openrouter-key") || "",
       });
       setIsEditing(false);
-      toast.success("Message updated");
     } catch (error) {
       console.error("Failed to update message:", error);
       toast.error("Failed to update message");

@@ -121,6 +121,8 @@ function Content() {
             generateMessage={sendMessage}
             images={images}
             setImages={setImages}
+            conversationId={"" as Id<"conversations">}
+            isGenerating={false}
           />
         </div>
       </div>

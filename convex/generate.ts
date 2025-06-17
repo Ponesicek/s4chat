@@ -20,6 +20,8 @@ let globalMCPClient: any[] | null = null;
 let globalTools: Record<string, any> = {};
 let mcpInitPromise: Promise<void> | null = null;
 
+
+
 // Define MCP server configurations for better type safety and maintainability
 interface MCPServerConfig {
   name: string;
@@ -292,6 +294,8 @@ export const generateMessageAction = internalAction({
       apiKey: args.apiKey,
     });
 
+    const abortController = new AbortController();
+    
     let response;
     let tools;
     let image;
@@ -349,7 +353,6 @@ export const generateMessageAction = internalAction({
       if (args.useMCP) {
       // Ensure MCP client is ready (non-blocking if already initialized)
       await initializeMCPClient();
-      
       tools = Object.keys(globalTools).length > 0 ? globalTools : undefined;
       
       response = await streamText({
@@ -357,14 +360,16 @@ export const generateMessageAction = internalAction({
         messages: messagesHistory,
         tools: tools,
         maxSteps: 10,
-        system: "Use GFM to format your responses. Do not mention GFM in your responses."
+        system: "Use GFM to format your responses. Do not mention GFM in your responses.",
+        abortSignal: abortController.signal,
       });
     } else {
       response = await streamText({
         model: openrouter.chat(args.modelName),
         messages: messagesHistory,
         maxSteps: 10,
-        system: "Use GFM to format your responses. Do not mention GFM in your responses."
+        system: "Use GFM to format your responses. Do not mention GFM in your responses.",
+        abortSignal: abortController.signal,
       });
     }
     }
@@ -421,6 +426,17 @@ export const generateMessageAction = internalAction({
     console.log("Generating message with model: " + args.modelName);
     try {
       for await (const chunk of response.fullStream) {
+        // Check if conversation was cancelled
+        const conversation = await ctx.runQuery(api.conversations.getConversationCancelStatus, {
+          conversation: args.conversation,
+        });
+        
+        if (conversation?.cancelled) {
+          console.log("Generation cancelled for conversation:", args.conversation);
+          abortController.abort();
+          throw new Error("Generation aborted");
+        }
+        
         switch (chunk.type) {
           case "text-delta":
             message += chunk.textDelta;
@@ -491,6 +507,7 @@ export const generateMessageAction = internalAction({
         },
         isImage: false,
       });
+      
       return message;
     }
   
@@ -509,6 +526,8 @@ export const generateMessageAction = internalAction({
       },
       isImage: false,
     });
+
+
 
 
     if (namePromise) {
@@ -537,6 +556,11 @@ export const generateMessage = mutation({
     if (!model) {
       throw new Error("Model not found");
     }
+
+    // Reset cancellation flag when starting new generation
+    await ctx.db.patch(args.conversation, {
+      cancelled: false,
+    });
 
     await ctx.db.insert("messages", {
       user: args.user,

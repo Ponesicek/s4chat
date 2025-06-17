@@ -183,12 +183,12 @@ export const GetMessages = query({
     }),
   ),
   handler: async (ctx, args) => {
-    const conversation = await ctx.db.get(args.conversation);
-    if (!conversation) {
-      throw new Error("Conversation not found");
+    if (args.conversation === "cancelled" || args.conversation === "error" || args.conversation === "") {
+      return [];
     }
-    if (conversation.user !== args.user) {
-      throw new Error("User not authorized to access this conversation");
+    const conversation = await ctx.db.get(args.conversation);
+    if (!conversation || conversation.user !== args.user) {
+      return [];
     }
     return await ctx.db
       .query("messages")
@@ -211,6 +211,7 @@ export const GetConversations = query({
       user: v.string(),
       name: v.string(),
       tags: v.array(v.string()),
+      cancelled: v.optional(v.boolean()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -274,21 +275,38 @@ export const GetImage = query({
   },
 });
 
+export const getConversationCancelStatus = query({
+  args: {
+    conversation: v.id("conversations"),
+  },
+  returns: v.union(v.object({
+    cancelled: v.optional(v.boolean()),
+  }), v.null()),
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversation);
+    if (!conversation) {
+      return null;
+    }
+    return { cancelled: conversation.cancelled };
+  },
+});
+
 export const StopGeneration = mutation({
   args: {
     conversation: v.id("conversations"),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const messages = await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", args.conversation)).take(1);
-    for (const message of messages) {
-      await ctx.db.patch(message._id, {
-        status: {
-          type: "error",
-          message: "Generation stopped",
-        },
-      });
-    }
+    // Set cancellation flag in the conversation
+    await ctx.db.patch(args.conversation, {
+      cancelled: true,
+    });
+    
+    // Optionally, you could mark pending messages as cancelled here, but doing so
+    // concurrently with the streaming action causes write conflicts. Instead, the
+    // streaming action will detect cancellation and update the message status
+    // itself when it aborts.
+    
     return null;
   },
 });

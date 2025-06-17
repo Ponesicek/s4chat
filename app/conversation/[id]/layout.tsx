@@ -3,7 +3,7 @@
 import { ReactNode, useCallback, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import Cookies from "js-cookie";
@@ -24,6 +24,16 @@ export default function ConversationLayout({
   const sendMutation = useMutation(api.generate.generateMessage);
   const sendImageMutation = useMutation(api.generate.saveImage);
   const [images, setImages] = useState<string[]>([]);
+
+  // Check if there are any pending messages to determine if generation is happening
+  const messages = useQuery(
+    api.conversations.GetMessages,
+    user?.id ? { user: user.id, conversation: conversationId } : ("skip" as const)
+  );
+  
+  const isGenerating = messages ? messages.some(msg => 
+    msg.role === "assistant" && msg.status?.type === "pending"
+  ) : false;
 
   // Keyboard shortcut: Ctrl+Shift+O to redirect to home
   useEffect(() => {
@@ -89,6 +99,8 @@ export default function ConversationLayout({
         user={user}
         images={images}
         setImages={setImages}
+        conversationId={conversationId}
+        isGenerating={isGenerating}
       />
       <Toaster className="primary" />
 
