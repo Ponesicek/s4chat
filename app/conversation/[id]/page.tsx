@@ -345,21 +345,6 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
                 variant="ghost"
                 size="icon"
                 className="border-0 hover:bg-primary/10"
-                onClick={handleCopy}
-              >
-                <Copy className="w-4 h-4 text-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Copy to clipboard
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="border-0 hover:bg-primary/10"
                 onClick={() => {              
                   branchConversationMutation({
                     user: user?.id ?? "",
