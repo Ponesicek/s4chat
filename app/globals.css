@@ -565,6 +565,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow: hidden;
   }
 
   /* Font family classes as fallback */

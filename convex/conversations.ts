@@ -273,7 +273,7 @@ export const GetImage = query({
   },
 });
 
-export const stopGeneration = mutation({
+export const StopGeneration = mutation({
   args: {
     conversation: v.id("conversations"),
   },
@@ -289,5 +289,42 @@ export const stopGeneration = mutation({
       });
     }
     return null;
+  },
+});
+
+export const BranchConversation = mutation({
+  args: {
+    user: v.string(),
+    conversation: v.id("conversations"),
+    branchedFrom: v.id("messages"),
+  },
+  returns: v.id("conversations"),
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversation);
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+    const messages = await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", args.conversation)).collect();
+    const newConversation = await ctx.db.insert("conversations", {
+      user: conversation.user,
+      name: conversation.name,
+      tags: conversation.tags,
+    });
+    for (const message of messages) {
+      await ctx.db.insert("messages", {
+        user: args.user,
+        content: message.content,
+        model: message.model,
+        conversation: newConversation,
+        role: message.role,
+        isImage: message.isImage,
+        reasoning: message.reasoning,
+        status: message.status,
+      });
+      if (message._id === args.branchedFrom) {
+        break;
+      }
+    }
+    return newConversation;
   },
 });

@@ -36,6 +36,8 @@ interface ChatMessageProps {
     type: "pending" | "completed" | "error";
     message?: string;
   };
+  conversationId: Id<"conversations">;
+  branchedFrom?: Id<"messages">;
 }
 
 const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
@@ -92,9 +94,9 @@ const UserChatMessage = ({ content, isImage }: ChatMessageProps) => {
   );
 };
 
-const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessageProps) => {
+const AssistantChatMessage = React.memo(({ content, status, isImage, conversationId, branchedFrom }: ChatMessageProps) => {
   const { user } = useUser();
-
+  const branchConversationMutation = useMutation(api.conversations.BranchConversation);
   // Move all hooks to the top
   const image = useQuery(
     api.conversations.GetImage,
@@ -219,6 +221,13 @@ const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessa
             variant="ghost"
             size="icon"
             className="border-0 hover:bg-primary/10"
+            onClick={() => {              
+              branchConversationMutation({
+              user: user?.id ?? "",
+              conversation: conversationId,
+              branchedFrom: branchedFrom as Id<"messages">,
+            });
+            }}
           >
             <GitBranch className="w-4 h-4 text-foreground" />
           </Button>
@@ -502,6 +511,7 @@ export default function ConversationPage() {
                             <UserChatMessage
                               content={msg.content}
                               isImage={msg.isImage}
+                              conversationId={conversationId}
                             />
                           </div>
                         </div>
@@ -548,7 +558,7 @@ export default function ConversationPage() {
                             {msg.reasoning && (
                               <ReasoningBox>{msg.reasoning}</ReasoningBox>
                             )}
-                            <AssistantChatMessage content={msg.content} status={msg.status} isImage={msg.isImage} />
+                            <AssistantChatMessage content={msg.content} status={msg.status} isImage={msg.isImage} conversationId={conversationId} branchedFrom={msg._id as Id<"messages">} />
                           </div>
                         </div>
                       </div>
