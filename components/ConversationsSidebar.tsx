@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Sidebar,
   SidebarHeader,
@@ -17,9 +18,10 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { useEmailSettings } from "@/hooks/use-email-settings";
 
 export function ProfileSidebarFooter() {
@@ -57,12 +59,35 @@ export function AppSidebar() {
   const { user } = useUser();
   const router = useRouter();
   const params = useParams();
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const conversations = useQuery(api.conversations.GetConversations, {
     user: user?.id ?? "",
   });
   const deleteConversationMutation = useMutation(
     api.conversations.DeleteConversation,
   );
+
+  const filteredConversations = useMemo(() => {
+    if (!conversations || !searchQuery.trim()) {
+      return conversations;
+    }
+    return conversations.filter((conversation) =>
+      conversation.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [conversations, searchQuery]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'K') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <Sidebar>
@@ -77,47 +102,63 @@ export function AppSidebar() {
           <Button asChild>
             <Link href="/">New Chat</Link>
           </Button>
+          <div className="relative mt-2">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search conversations"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </SidebarGroup>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {conversations ? (
-                [...conversations].reverse().map((conversation) => (
-                  <SidebarMenuItem key={conversation._id}>
-                    <div className="group/item relative h-9.5 flex items-center">
-                      <SidebarMenuButton
-                        asChild
-                        isActive={params.id === conversation._id}
-                        className="group/menu-item h-full flex-1"
-                      >
-                        <Link href={`/conversation/${conversation._id}`}>
-                          <span className="truncate">{conversation.name}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      <div className="flex items-center h-full">
-                        <SidebarMenuAction
-                          className="opacity-0 group-hover/menu-item:opacity-100 transition-opacity duration-200 top-1/2 -translate-y-1/2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (params.id === conversation._id) {
-                              router.push("/");
-                            }
-                            deleteConversationMutation({
-                              user: user?.id ?? "",
-                              conversation: conversation._id,
-                            });
-                          }}
+              {filteredConversations ? (
+                filteredConversations.length > 0 ? (
+                  [...filteredConversations].reverse().map((conversation) => (
+                    <SidebarMenuItem key={conversation._id}>
+                      <div className="group/item relative h-9.5 flex items-center">
+                        <SidebarMenuButton
+                          asChild
+                          isActive={params.id === conversation._id}
+                          className="group/menu-item h-full flex-1"
                         >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Delete conversation</span>
-                        </SidebarMenuAction>
+                          <Link href={`/conversation/${conversation._id}`}>
+                            <span className="truncate">{conversation.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        <div className="flex items-center h-full">
+                          <SidebarMenuAction
+                            className="opacity-0 group-hover/menu-item:opacity-100 transition-opacity duration-200 top-1/2 -translate-y-1/2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              if (params.id === conversation._id) {
+                                router.push("/");
+                              }
+                              deleteConversationMutation({
+                                user: user?.id ?? "",
+                                conversation: conversation._id,
+                              });
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Delete conversation</span>
+                          </SidebarMenuAction>
+                        </div>
                       </div>
-                    </div>
-                  </SidebarMenuItem>
-                ))
+                    </SidebarMenuItem>
+                  ))
+                ) : (
+                  <div className="text-sm text-muted-foreground p-2">
+                    No conversations found matching &quot;{searchQuery}&quot;
+                  </div>
+                )
               ) : (
                 // Show empty sidebar while loading
                 <div className="text-sm text-muted-foreground p-2">
