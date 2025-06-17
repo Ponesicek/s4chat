@@ -156,21 +156,6 @@ export function ModelBrowser() {
           <div className="max-h-96 overflow-y-auto no-scrollbar">
             {filteredModels?.length === 0 ? (
               <div className="p-6 text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-3m-13 0h3m-3 0v-3m0 3v3"
-                    />
-                  </svg>
-                </div>
                 <p className="text-sm text-muted-foreground">
                   No models found
                 </p>
