@@ -105,12 +105,23 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(content);
-      toast.success("Copied to clipboard");
+      if (isImage && image) {
+        // Copy image to clipboard
+        const response = await fetch(image);
+        const blob = await response.blob();
+        const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+        await navigator.clipboard.write([clipboardItem]);
+        toast.success("Image copied to clipboard");
+      } else {
+        // Copy text to clipboard
+        await navigator.clipboard.writeText(content);
+        toast.success("Copied to clipboard");
+      }
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      console.error('Failed to copy: ', err);
+      toast.error("Failed to copy to clipboard");
     }
-  }, [content]);
+  }, [content, isImage, image]);
 
   // Memoize the components object to prevent ReactMarkdown from re-rendering
   const markdownComponents = React.useMemo(
@@ -163,10 +174,17 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
             <Copy className="w-4 h-4 text-foreground" />
         </Button>
         <Button
-          variant="ghost"
-          size="icon"
-          className="border-0 hover:bg-primary/10"
-        >
+            variant="ghost"
+            size="icon"
+            className="border-0 hover:bg-primary/10"
+            onClick={() => {              
+              branchConversationMutation({
+              user: user?.id ?? "",
+              conversation: conversationId,
+              branchedFrom: branchedFrom as Id<"messages">,
+            });
+            }}
+          >
           <GitBranch className="w-4 h-4 text-foreground" />
         </Button>
         <Button
