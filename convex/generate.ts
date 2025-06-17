@@ -135,30 +135,6 @@ async function initializeMCPClient() {
   return mcpInitPromise;
 }
 
-export const saveAIImage = internalMutation({
-  args: {
-    image: v.string(),
-  },
-  returns: v.object({
-    storageId: v.id("_storage"),
-  }),
-  handler: async (ctx, args) => {
-    const url = await ctx.storage.generateUploadUrl();
-    const result = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "image/png" },
-      body: Buffer.from(args.image, "base64"),
-    });
-    const data = await result.json() as { storageId: string };
-    if (data.storageId) {
-      return { storageId: data.storageId as Id<"_storage"> };
-    }
-    else {
-      throw new Error("Failed to save image");
-    }
-  },
-});
-
 export const writeResponse = internalMutation({
   args: {
     user: v.string(),
@@ -173,6 +149,7 @@ export const writeResponse = internalMutation({
       type: v.string(),
       message: v.string(),
     }),
+    isImage: v.boolean(),
   },
   handler: async (ctx, args) => {
     if (args.isName) {
@@ -188,7 +165,7 @@ export const writeResponse = internalMutation({
         model: args.model,
         conversation: args.conversation,
         role: "assistant",
-        isImage: false,
+        isImage: args.isImage,
         reasoning: args.reasoning,
       });
     }
@@ -318,14 +295,57 @@ export const generateMessageAction = internalAction({
     let response;
     let tools;
     let image;
+    let storageId: Id<"_storage"> | null = null;
+    let messageId: Id<"messages"> | null = null;
     if (args.modelName === "gpt-image-1") {
+      messageId = await ctx.runMutation(internal.generate.writeResponse, {
+        user: args.user,
+        content: "",
+        reasoning: "",
+        model: args.model,
+        modelName: args.modelName,
+        conversation: args.conversation,
+        messageId: undefined,
+        isName: false,
+        status: {
+          type: "pending",
+          message: "Generating image...",
+        },
+        isImage: true,
+      });
       image = await generateImage({
         model: openai.image("gpt-image-1"),
         prompt: args.content,
         n: 1,
         size: "1024x1024",
       });
-      console.log("Image generated:", image.image.base64);
+
+
+      // Convert base64 to Uint8Array using Web APIs instead of Node.js Buffer
+      const binaryString = atob(image.image.base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "image/png" });
+      storageId = await ctx.storage.store(blob);
+      messageId = await ctx.runMutation(internal.generate.writeResponse, {
+        user: args.user,
+        content: storageId,
+        reasoning: "",
+        model: args.model,
+        modelName: args.modelName,
+        conversation: args.conversation,
+        messageId: messageId as Id<"messages">,
+        isName: false,
+        status: {
+          type: "pending",
+          message: "Generating image...",
+        },
+        isImage: true,
+      });
+      return;
+
     }
     else {
       if (args.useMCP) {
@@ -374,6 +394,7 @@ export const generateMessageAction = internalAction({
               type: "pending",
               message: "Generating name...",
             },
+            isImage: false,
           });
         }
       }).catch((error) => {
@@ -387,7 +408,7 @@ export const generateMessageAction = internalAction({
       type: "pending",
       message: "Generating message...",
     };
-    const messageId = await ctx.runMutation(internal.generate.writeResponse, {
+    messageId = await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
       content: message,
       model: args.model,
@@ -396,16 +417,9 @@ export const generateMessageAction = internalAction({
       messageId: undefined,
       isName: false,
       status: status,
+      isImage: false,
     });
 
-    if (image) {
-      const result: { storageId: Id<"_storage"> } = await ctx.runMutation(internal.generate.saveAIImage, {
-        image: image.image.base64,
-      });
-      console.log("Image saved:", result);
-      return result;
-    }
-    else {
     console.log("Generating message with model: " + args.modelName);
     try {
       for await (const chunk of response.fullStream) {
@@ -459,6 +473,7 @@ export const generateMessageAction = internalAction({
           messageId: messageId as Id<"messages">,
           isName: false,
           status: status,
+          isImage: false,
         });
       }
     } catch (error) {
@@ -476,10 +491,11 @@ export const generateMessageAction = internalAction({
           type: "error",
           message: error instanceof Error ? error.message : "Unknown error occurred",
         },
+        isImage: false,
       });
       return message;
     }
-  }
+  
     await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
       content: message,
@@ -493,15 +509,13 @@ export const generateMessageAction = internalAction({
         type: "completed",
         message: "Message generated",
       },
+      isImage: false,
     });
 
 
     if (namePromise) {
       await namePromise;
     }
-
-    // Note: We keep the global MCP client running for performance
-    // It will be cleaned up when the process shuts down
 
     return message;
   },

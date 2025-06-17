@@ -31,6 +31,7 @@ import { toast } from "sonner";
 interface ChatMessageProps {
   content: string;
   isImage?: boolean;
+  isImageUrl?: boolean;
   status?: {
     type: "pending" | "completed" | "error";
     message?: string;
@@ -91,7 +92,15 @@ const UserChatMessage = ({ content, isImage }: ChatMessageProps) => {
   );
 };
 
-const AssistantChatMessage = React.memo(({ content, status }: ChatMessageProps) => {
+const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessageProps) => {
+  const { user } = useUser();
+
+  // Move all hooks to the top
+  const image = useQuery(
+    api.conversations.GetImage,
+    isImage ? { user: user?.id ?? "", image: content as Id<"_storage"> } : ("skip" as const),
+  );
+
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(content);
@@ -128,6 +137,22 @@ const AssistantChatMessage = React.memo(({ content, status }: ChatMessageProps) 
     }),
     [],
   );
+
+  // Handle conditional rendering after hooks
+  if (isImage) {
+    if (!image) {
+      return null;
+    }
+    return (
+      <Image
+        src={image}
+        alt="Assistant image"
+        width={500}
+        height={500}
+        className="max-w-50 max-h-50 object-contain"
+      />
+    );
+  }
 
   return (
     <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-hr:border-border prose-lead:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-th:text-foreground prose-td:text-foreground prose-li:text-foreground">
@@ -482,7 +507,7 @@ export default function ConversationPage() {
                             {msg.reasoning && (
                               <ReasoningBox>{msg.reasoning}</ReasoningBox>
                             )}
-                            <AssistantChatMessage content={msg.content} status={msg.status} />
+                            <AssistantChatMessage content={msg.content} status={msg.status} isImage={msg.isImage} />
                           </div>
                         </div>
                       </div>
