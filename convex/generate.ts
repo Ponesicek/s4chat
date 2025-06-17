@@ -129,14 +129,13 @@ async function initializeMCPClient() {
 
       // Update global state with successful clients
       globalMCPClient = successfulClients.map((result) => result.client);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       globalTools = successfulClients.reduce(
         (acc, result) => {
           // Flatten tools from all clients into a single object
           Object.assign(acc, result.tools);
           return acc;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {} as Record<string, any>,
       );
 
