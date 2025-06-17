@@ -272,3 +272,22 @@ export const GetImage = query({
     }
   },
 });
+
+export const stopGeneration = mutation({
+  args: {
+    conversation: v.id("conversations"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const messages = await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", args.conversation)).take(1);
+    for (const message of messages) {
+      await ctx.db.patch(message._id, {
+        status: {
+          type: "error",
+          message: "Generation stopped",
+        },
+      });
+    }
+    return null;
+  },
+});
