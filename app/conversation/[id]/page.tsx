@@ -143,7 +143,7 @@ const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessa
       return null;
     }
     return (
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col">
       <Image
         src={image}
         alt="Assistant image"
@@ -151,7 +151,6 @@ const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessa
         height={400}
         className="object-contain"
       />
-      <div className="flex items-center justify-between mt-4">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
@@ -192,7 +191,6 @@ const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessa
           )}
         </div>
       )}
-    </div>
     </div>
     );
   }

@@ -300,7 +300,7 @@ export const generateMessageAction = internalAction({
     if (args.modelName === "gpt-image-1") {
       messageId = await ctx.runMutation(internal.generate.writeResponse, {
         user: args.user,
-        content: "",
+        content: " ",
         reasoning: "",
         model: args.model,
         modelName: args.modelName,
@@ -339,8 +339,8 @@ export const generateMessageAction = internalAction({
         messageId: messageId as Id<"messages">,
         isName: false,
         status: {
-          type: "pending",
-          message: "Generating image...",
+          type: "completed",
+          message: "Image generated",
         },
         isImage: true,
       });
