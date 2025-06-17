@@ -378,7 +378,7 @@ export const generateMessageAction = internalAction({
         model: openrouter.chat("google/gemini-2.0-flash-001"),
         prompt: args.content,
         system:
-          "You are a helpful assistant that generates a name for a conversation. The name should be a phrase that captures the essence of the conversation. The name should be no more than 5 words.",
+          "You are a helpful assistant that generates a name for a conversation. The name should be a phrase that captures the essence of the conversation. The name should be no more than 5 words. Do not use any formatting or markdown.",
       }).then(async (generateName) => {
         if (generateName.text) {
           await ctx.runMutation(internal.generate.writeResponse, {

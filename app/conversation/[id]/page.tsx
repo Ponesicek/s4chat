@@ -25,8 +25,10 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import Image from "next/image";
 import { getModelIcon } from "@/components/ModelIcon";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Copy, GitBranch, RotateCcw } from "lucide-react";
+import { Check, ChevronDown, Copy, GitBranch, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ChatMessageProps {
   content: string;
@@ -64,14 +66,61 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const UserChatMessage = ({ content, isImage }: ChatMessageProps) => {
+const UserChatMessage = ({ content, isImage, branchedFrom }: ChatMessageProps) => {
   const { user } = useUser();
   const userId = user?.id;
+  const editMessageMutation = useMutation(api.conversations.EditMessage);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(content);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   // Fetch image data unconditionally to satisfy React hooks rules.
   const image = useQuery(
     api.conversations.GetImage,
     isImage ? { user: userId ?? "", image: content as Id<"_storage"> } : ("skip" as const),
   );
+  
+  const handleCopy = useCallback(async () => {
+    await navigator.clipboard.writeText(content);
+    toast.success("Copied to clipboard");
+  }, [content]);
+
+  const handleStartEdit = useCallback(() => {
+    setEditedContent(content);
+    setIsEditing(true);
+  }, [content]);
+
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!branchedFrom || !userId) return;
+    
+    try {
+      await editMessageMutation({
+        user: userId,
+        message: branchedFrom,
+        content: editedContent,
+        apiKey: Cookies.get("openrouter-key") || "",
+      });
+      setIsEditing(false);
+      toast.success("Message updated");
+    } catch (error) {
+      console.error("Failed to update message:", error);
+      toast.error("Failed to update message");
+    }
+  }, [editMessageMutation, userId, branchedFrom, editedContent]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditedContent(content);
+    setIsEditing(false);
+  }, [content]);
+
+  // Position cursor at the end when editing starts
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      const textarea = textareaRef.current;
+      const length = textarea.value.length;
+      textarea.setSelectionRange(length, length);
+    }
+  }, [isEditing]);
 
   if (isImage) {
     if (!image) {
@@ -87,9 +136,101 @@ const UserChatMessage = ({ content, isImage }: ChatMessageProps) => {
       />
     );
   }
+
   return (
-    <div className="prose max-w-none prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-code:bg-primary-foreground/10 prose-code:text-primary-foreground prose-pre:bg-primary-foreground/10 prose-pre:border prose-pre:border-primary-foreground/20 prose-blockquote:text-primary-foreground/80 prose-blockquote:border-l-primary-foreground/30 prose-hr:border-primary-foreground/30 prose-lead:text-primary-foreground/80 prose-a:text-primary-foreground prose-a:underline hover:prose-a:text-primary-foreground/80 prose-th:text-primary-foreground prose-td:text-primary-foreground prose-li:text-primary-foreground">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    <div className="flex flex-col">
+      <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 shadow-sm">
+      <div className="prose max-w-none prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-code:bg-primary-foreground/10 prose-code:text-primary-foreground prose-pre:bg-primary-foreground/10 prose-pre:border prose-pre:border-primary-foreground/20 prose-blockquote:text-primary-foreground/80 prose-blockquote:border-l-primary-foreground/30 prose-hr:border-primary-foreground/30 prose-lead:text-primary-foreground/80 prose-a:text-primary-foreground prose-a:underline hover:prose-a:text-primary-foreground/80 prose-th:text-primary-foreground prose-td:text-primary-foreground prose-li:text-primary-foreground">
+        {isEditing ? (
+          <Textarea 
+            ref={textareaRef}
+            value={editedContent} 
+            onChange={(e) => setEditedContent(e.target.value)} 
+            className="w-full bg-transparent border-none outline-none resize-none text-primary-foreground text-base leading-relaxed font-normal overflow-hidden"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSaveEdit();
+              } else if (e.key === 'Escape') {
+                handleCancelEdit();
+              }
+            }}
+            autoFocus
+          />
+        ) : (
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        )}
+      </div>
+      </div>
+      <div className="flex items-center gap-2 mt-2 justify-end">
+        {isEditing ? (
+                  <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="border-0 hover:bg-primary/10"
+                        onClick={handleSaveEdit}
+                      >
+                        <Check className="w-4 h-4 text-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      Save changes
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="border-0 hover:bg-primary/10"
+                        onClick={handleCancelEdit}
+                      >
+                        <X className="w-4 h-4 text-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      Cancel
+                    </TooltipContent>
+                  </Tooltip>
+                  </TooltipProvider>
+        ) : (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="border-0 hover:bg-primary/10"
+                onClick={handleCopy}
+              >
+                <Copy className="w-4 h-4 text-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Copy to clipboard
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="border-0 hover:bg-primary/10"
+                onClick={handleStartEdit}
+              >
+                <Pencil className="w-4 h-4 text-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Edit message
+            </TooltipContent>
+          </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
     </div>
   );
 };
@@ -106,10 +247,31 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
   const handleCopy = useCallback(async () => {
     try {
       if (isImage && image) {
+        // Check if clipboard API and ClipboardItem are supported
+        if (!navigator.clipboard?.write || !window.ClipboardItem) {
+          // Fallback: copy image URL as text
+          await navigator.clipboard.writeText(image);
+          toast.success("Image URL copied to clipboard");
+          return;
+        }
+
         // Copy image to clipboard
         const response = await fetch(image);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+        
         const blob = await response.blob();
-        const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+        
+        // Validate blob type and ensure it's an image
+        const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+        const blobType = blob.type || 'image/png'; // Default to PNG if type is missing
+        
+        if (!validImageTypes.includes(blobType)) {
+          throw new Error(`Unsupported image type: ${blobType}`);
+        }
+
+        const clipboardItem = new ClipboardItem({ [blobType]: blob });
         await navigator.clipboard.write([clipboardItem]);
         toast.success("Image copied to clipboard");
       } else {
@@ -119,7 +281,19 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
       }
     } catch (err) {
       console.error('Failed to copy: ', err);
-      toast.error("Failed to copy to clipboard");
+      
+      // Try fallback for images
+      if (isImage && image) {
+        try {
+          await navigator.clipboard.writeText(image);
+          toast.success("Image URL copied to clipboard");
+        } catch (fallbackErr) {
+          console.error('Fallback copy failed: ', fallbackErr);
+          toast.error("Failed to copy to clipboard");
+        }
+      } else {
+        toast.error("Failed to copy to clipboard");
+      }
     }
   }, [content, isImage, image]);
 
@@ -165,35 +339,44 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
         className="object-contain"
       />
       <div className="flex items-center gap-2 mt-2 ">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="border-0 hover:bg-primary/10"
-          onClick={handleCopy}
-        >
-            <Copy className="w-4 h-4 text-foreground" />
-        </Button>
-        <Button
-            variant="ghost"
-            size="icon"
-            className="border-0 hover:bg-primary/10"
-            onClick={() => {              
-              branchConversationMutation({
-              user: user?.id ?? "",
-              conversation: conversationId,
-              branchedFrom: branchedFrom as Id<"messages">,
-            });
-            }}
-          >
-          <GitBranch className="w-4 h-4 text-foreground" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="border-0 hover:bg-primary/10"
-        >
-          <RotateCcw className="w-4 h-4 text-foreground" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="border-0 hover:bg-primary/10"
+                onClick={handleCopy}
+              >
+                <Copy className="w-4 h-4 text-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Copy to clipboard
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="border-0 hover:bg-primary/10"
+                onClick={() => {              
+                  branchConversationMutation({
+                    user: user?.id ?? "",
+                    conversation: conversationId,
+                    branchedFrom: branchedFrom as Id<"messages">,
+                  });
+                }}
+              >
+                <GitBranch className="w-4 h-4 text-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Branch conversation
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       {status && status.type !== "completed" && (
         <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -227,35 +410,44 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
       </ReactMarkdown>
       <div className="flex items-center justify-between mt-4">
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="border-0 hover:bg-primary/10"
-            onClick={handleCopy}
-          >
-              <Copy className="w-4 h-4 text-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="border-0 hover:bg-primary/10"
-            onClick={() => {              
-              branchConversationMutation({
-              user: user?.id ?? "",
-              conversation: conversationId,
-              branchedFrom: branchedFrom as Id<"messages">,
-            });
-            }}
-          >
-            <GitBranch className="w-4 h-4 text-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="border-0 hover:bg-primary/10"
-          >
-            <RotateCcw className="w-4 h-4 text-foreground" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="border-0 hover:bg-primary/10"
+                  onClick={handleCopy}
+                >
+                  <Copy className="w-4 h-4 text-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Copy to clipboard
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="border-0 hover:bg-primary/10"
+                  onClick={() => {              
+                    branchConversationMutation({
+                      user: user?.id ?? "",
+                      conversation: conversationId,
+                      branchedFrom: branchedFrom as Id<"messages">,
+                    });
+                  }}
+                >
+                  <GitBranch className="w-4 h-4 text-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Branch conversation
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         {status && status.type !== "completed" && (
           <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -514,7 +706,7 @@ export default function ConversationPage() {
                 >
                   {msg.role === "user" ? (
                     // User message with bubble styling
-                    <div className="px-6 py-8">
+                    <div className="px-4 py-4">
                       <div className="flex items-start justify-end space-x-4">
                         <div className="flex flex-col items-end max-w-[80%]">
                           <div className="flex items-center space-x-2 mb-2">
@@ -525,13 +717,12 @@ export default function ConversationPage() {
                               You
                             </span>
                           </div>
-                          <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 shadow-sm">
                             <UserChatMessage
                               content={msg.content}
                               isImage={msg.isImage}
                               conversationId={conversationId}
+                              branchedFrom={msg._id as Id<"messages">}
                             />
-                          </div>
                         </div>
                         <div className="flex-shrink-0">
                           {user?.imageUrl ? (
@@ -558,7 +749,7 @@ export default function ConversationPage() {
                     </div>
                   ) : (
                     // Assistant message with original styling
-                    <div className="px-6 py-8">
+                    <div className="px-4 py-4">
                       <div className="flex items-start space-x-4">
                         <div className="flex-shrink-0">
                           {getModelIcon(msg.model.provider, msg.model.author)}

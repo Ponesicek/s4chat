@@ -8,4 +8,6 @@
 
 ## Exa
 
-## context7
+## Context7
+
+# Limitations

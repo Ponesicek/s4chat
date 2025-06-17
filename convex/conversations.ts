@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { Id } from "./_generated/dataModel";
+import { api } from "./_generated/api";
 
 export const GetMessagesPaginated = query({
   args: {
@@ -326,5 +327,44 @@ export const BranchConversation = mutation({
       }
     }
     return newConversation;
+  },
+});
+
+export const EditMessage = mutation({
+  args: {
+    user: v.string(),
+    message: v.string(),
+    content: v.string(),
+    apiKey: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const message = await ctx.db.get(args.message as Id<"messages">);
+    if (!message) {
+      throw new Error("Message not found");
+    }
+    if (message.user !== args.user) {
+      throw new Error("User not authorized to edit this message");
+    }
+    await ctx.db.patch(args.message as Id<"messages">, {
+      content: args.content,
+    });
+    // Delete all messages except the one being edited
+    const messages = await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", message.conversation)).order("desc").collect();
+    for (const m of messages) {
+      const cur = m._id;
+      await ctx.db.delete(m._id);
+      if (cur === args.message) {
+        break;
+      }
+    }
+    await ctx.runMutation(api.generate.generateMessage, {
+      user: args.user,
+      content: args.content,
+      model: message.model,
+      conversation: message.conversation,
+      apiKey: args.apiKey,
+      useMCP: false,
+    });
   },
 });

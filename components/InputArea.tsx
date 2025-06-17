@@ -9,7 +9,7 @@ import React, {
 import { Button } from "@/components/ui/button";
 import { ModelBrowser } from "@/components/ModelBrowser";
 import { useUser } from "@clerk/nextjs";
-import { Paperclip, Send } from "lucide-react";
+import { Paperclip, Send, X } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Cookies from "js-cookie";
@@ -197,17 +197,17 @@ export function InputArea({
     <div className="w-full max-w-4xl mx-auto">
       {/* Uploaded Images Preview */}
       {uploadedImages.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2 ">
+        <div className="mb-3 flex flex-wrap gap-3 p-2">
           {uploadedImages.map((image, index) => (
             <div
               key={index}
-              className="relative w-16 h-16 rounded-lg border overflow-hidden bg-muted"
+              className="relative w-16 h-16 rounded-lg border bg-muted"
             >
               {image ? (
                 <Image
                   src={image}
                   alt={`Uploaded ${index + 1}`}
-                  className="w-full h-full object-cover transition-opacity duration-300"
+                  className="w-full h-full object-cover transition-opacity duration-300 rounded-lg"
                   width={64}
                   height={64}
                 />
@@ -219,7 +219,7 @@ export function InputArea({
                 onClick={() => onDeleteImage(index)}
                 className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center text-xs hover:bg-destructive/80"
               >
-                ×
+                <X className="w-4 h-4" />
               </button>
             </div>
           ))}
