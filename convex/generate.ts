@@ -5,12 +5,13 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { v } from "convex/values";
-import { generateText, streamText, experimental_createMCPClient as createMCPClient,
+import { generateText, experimental_generateImage as generateImage, streamText, experimental_createMCPClient as createMCPClient,
 } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js"
+import { openai } from '@ai-sdk/openai';
 
 // Global MCP client singleton - only initialized in actions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
@@ -134,6 +135,29 @@ async function initializeMCPClient() {
   return mcpInitPromise;
 }
 
+export const saveAIImage = internalMutation({
+  args: {
+    image: v.string(),
+  },
+  returns: v.object({
+    storageId: v.id("_storage"),
+  }),
+  handler: async (ctx, args) => {
+    const url = await ctx.storage.generateUploadUrl();
+    const result = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "image/png" },
+      body: Buffer.from(args.image, "base64"),
+    });
+    const data = await result.json() as { storageId: string };
+    if (data.storageId) {
+      return { storageId: data.storageId as Id<"_storage"> };
+    }
+    else {
+      throw new Error("Failed to save image");
+    }
+  },
+});
 
 export const writeResponse = internalMutation({
   args: {
@@ -293,7 +317,18 @@ export const generateMessageAction = internalAction({
 
     let response;
     let tools;
-    if (args.useMCP) {
+    let image;
+    if (args.modelName === "gpt-image-1") {
+      image = await generateImage({
+        model: openai.image("gpt-image-1"),
+        prompt: args.content,
+        n: 1,
+        size: "1024x1024",
+      });
+      console.log("Image generated:", image.image.base64);
+    }
+    else {
+      if (args.useMCP) {
       // Ensure MCP client is ready (non-blocking if already initialized)
       await initializeMCPClient();
       
@@ -313,6 +348,7 @@ export const generateMessageAction = internalAction({
         maxSteps: 10,
         system: "Use GFM to format your responses. Do not mention GFM in your responses."
       });
+    }
     }
     if (!response) {
       return;
@@ -362,6 +398,14 @@ export const generateMessageAction = internalAction({
       status: status,
     });
 
+    if (image) {
+      const result: { storageId: Id<"_storage"> } = await ctx.runMutation(internal.generate.saveAIImage, {
+        image: image.image.base64,
+      });
+      console.log("Image saved:", result);
+      return result;
+    }
+    else {
     console.log("Generating message with model: " + args.modelName);
     try {
       for await (const chunk of response.fullStream) {
@@ -435,6 +479,7 @@ export const generateMessageAction = internalAction({
       });
       return message;
     }
+  }
     await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
       content: message,
