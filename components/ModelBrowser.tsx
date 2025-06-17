@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { getModelIcon } from "./ModelIcon";
+import { Input } from "@/components/ui/input";
 
 function ModelCard({
   name,
@@ -85,6 +86,7 @@ export function ModelBrowser() {
   const models = useQuery(api.generate.GetModels, {});
   const [, setCurrentModel] = useState<string | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const currentModelID = Cookies.get("model");
   useEffect(() => {
     setCurrentModel(
@@ -109,6 +111,12 @@ export function ModelBrowser() {
       </div>
     );
   }
+
+  const filteredModels = models?.filter((model) => {
+    if (!search.trim()) return true;
+    const term = search.toLowerCase();
+    return model.name.toLowerCase().includes(term);
+  });
 
   return (
     <div className="flex flex-col gap-4 ">
@@ -136,8 +144,17 @@ export function ModelBrowser() {
             </p>
           </div>
 
+          <div className="p-3 border-b border-border">
+            <Input
+              placeholder="Search models..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8"
+            />
+          </div>
+
           <div className="max-h-96 overflow-y-auto no-scrollbar">
-            {models?.length === 0 ? (
+            {filteredModels?.length === 0 ? (
               <div className="p-6 text-center">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
                   <svg
@@ -155,12 +172,12 @@ export function ModelBrowser() {
                   </svg>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  No models available
+                  No models found
                 </p>
               </div>
             ) : (
               <div className="p-3 space-y-2">
-                {models?.map((model) => (
+                {filteredModels?.map((model) => (
                   <ModelCard
                     key={model._id}
                     name={model.name}

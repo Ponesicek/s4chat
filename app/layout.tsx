@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/ConversationsSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { ThemeProvider } from "next-themes";
 import { cookies } from "next/headers";
+import SidebarOverlay from "@/components/SidebarOverlay";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,6 +70,7 @@ export default async function RootLayout({
           <ClerkProvider dynamic>
             <ConvexClientProvider>
               <SidebarProvider defaultOpen={true}>
+                <SidebarOverlay />
                 <AppSidebar />
                 <SidebarInset>
                   <main className="flex flex-1 flex-col gap-4 p-4">
