@@ -73,20 +73,20 @@ export function AppSidebar() {
       return conversations;
     }
     return conversations.filter((conversation) =>
-      conversation.name.toLowerCase().includes(searchQuery.toLowerCase())
+      conversation.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [conversations, searchQuery]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.shiftKey && event.key === 'K') {
+      if (event.ctrlKey && event.shiftKey && event.key === "K") {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
@@ -153,7 +153,9 @@ export function AppSidebar() {
                     </div>
                   </SidebarMenuItem>
                 ))
-              ) : conversations && conversations.length > 0 && filteredConversations?.length === 0 ? (
+              ) : conversations &&
+                conversations.length > 0 &&
+                filteredConversations?.length === 0 ? (
                 <div className="text-sm text-muted-foreground p-2">
                   No conversations found matching &quot;{searchQuery}&quot;
                 </div>

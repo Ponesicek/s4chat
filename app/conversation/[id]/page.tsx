@@ -27,7 +27,12 @@ import { getModelIcon } from "@/components/ModelIcon";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronDown, Copy, GitBranch, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 
 interface ChatMessageProps {
@@ -51,22 +56,30 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
     >
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Reasoning</span>
-        <ChevronDown className={`w-4 h-4 text-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
       </div>
-      {isOpen && <div className="mt-2">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, rehypeRaw]}
-        remarkRehypeOptions={{ allowDangerousHtml: true }}
-      >
-        {children as string}
-      </ReactMarkdown>
-        </div>}
+      {isOpen && (
+        <div className="mt-2">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex, rehypeRaw]}
+            remarkRehypeOptions={{ allowDangerousHtml: true }}
+          >
+            {children as string}
+          </ReactMarkdown>
+        </div>
+      )}
     </div>
   );
 };
 
-const UserChatMessage = ({ content, isImage, branchedFrom }: ChatMessageProps) => {
+const UserChatMessage = ({
+  content,
+  isImage,
+  branchedFrom,
+}: ChatMessageProps) => {
   const { user } = useUser();
   const userId = user?.id;
   const editMessageMutation = useMutation(api.conversations.EditMessage);
@@ -76,9 +89,11 @@ const UserChatMessage = ({ content, isImage, branchedFrom }: ChatMessageProps) =
   // Fetch image data unconditionally to satisfy React hooks rules.
   const image = useQuery(
     api.conversations.GetImage,
-    isImage ? { user: userId ?? "", image: content as Id<"_storage"> } : ("skip" as const),
+    isImage
+      ? { user: userId ?? "", image: content as Id<"_storage"> }
+      : ("skip" as const),
   );
-  
+
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(content);
     toast.success("Copied to clipboard");
@@ -89,10 +104,9 @@ const UserChatMessage = ({ content, isImage, branchedFrom }: ChatMessageProps) =
     setIsEditing(true);
   }, [content]);
 
-
   const handleSaveEdit = useCallback(async () => {
     if (!branchedFrom || !userId) return;
-    
+
     try {
       await editMessageMutation({
         user: userId,
@@ -139,261 +153,59 @@ const UserChatMessage = ({ content, isImage, branchedFrom }: ChatMessageProps) =
   return (
     <div className="flex flex-col">
       <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 shadow-sm">
-      <div className="prose max-w-none prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-code:bg-primary-foreground/10 prose-code:text-primary-foreground prose-pre:bg-primary-foreground/10 prose-pre:border prose-pre:border-primary-foreground/20 prose-blockquote:text-primary-foreground/80 prose-blockquote:border-l-primary-foreground/30 prose-hr:border-primary-foreground/30 prose-lead:text-primary-foreground/80 prose-a:text-primary-foreground prose-a:underline hover:prose-a:text-primary-foreground/80 prose-th:text-primary-foreground prose-td:text-primary-foreground prose-li:text-primary-foreground">
-        {isEditing ? (
-          <Textarea 
-            ref={textareaRef}
-            value={editedContent} 
-            onChange={(e) => setEditedContent(e.target.value)} 
-            className="w-full bg-transparent border-none outline-none resize-none text-primary-foreground text-base leading-relaxed font-normal overflow-hidden"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSaveEdit();
-              } else if (e.key === 'Escape') {
-                handleCancelEdit();
-              }
-            }}
-            autoFocus
-          />
-        ) : (
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-        )}
-      </div>
+        <div className="prose max-w-none prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-code:bg-primary-foreground/10 prose-code:text-primary-foreground prose-pre:bg-primary-foreground/10 prose-pre:border prose-pre:border-primary-foreground/20 prose-blockquote:text-primary-foreground/80 prose-blockquote:border-l-primary-foreground/30 prose-hr:border-primary-foreground/30 prose-lead:text-primary-foreground/80 prose-a:text-primary-foreground prose-a:underline hover:prose-a:text-primary-foreground/80 prose-th:text-primary-foreground prose-td:text-primary-foreground prose-li:text-primary-foreground">
+          {isEditing ? (
+            <Textarea
+              ref={textareaRef}
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              className="w-full bg-transparent border-none outline-none resize-none text-primary-foreground text-base leading-relaxed font-normal overflow-hidden"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSaveEdit();
+                } else if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+              autoFocus
+            />
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2 mt-2 justify-end">
         {isEditing ? (
-                  <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="border-0 hover:bg-primary/10"
-                        onClick={handleSaveEdit}
-                      >
-                        <Check className="w-4 h-4 text-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      Save changes
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="border-0 hover:bg-primary/10"
-                        onClick={handleCancelEdit}
-                      >
-                        <X className="w-4 h-4 text-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      Cancel
-                    </TooltipContent>
-                  </Tooltip>
-                  </TooltipProvider>
-        ) : (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="border-0 hover:bg-primary/10"
-                onClick={handleCopy}
-              >
-                <Copy className="w-4 h-4 text-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Copy to clipboard
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="border-0 hover:bg-primary/10"
-                onClick={handleStartEdit}
-              >
-                <Pencil className="w-4 h-4 text-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Edit message
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="border-0 hover:bg-primary/10"
+                  onClick={handleSaveEdit}
+                >
+                  <Check className="w-4 h-4 text-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Save changes</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="border-0 hover:bg-primary/10"
+                  onClick={handleCancelEdit}
+                >
+                  <X className="w-4 h-4 text-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Cancel</TooltipContent>
+            </Tooltip>
           </TooltipProvider>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const AssistantChatMessage = React.memo(({ content, status, isImage, conversationId, branchedFrom }: ChatMessageProps) => {
-  const { user } = useUser();
-  const branchConversationMutation = useMutation(api.conversations.BranchConversation);
-  // Move all hooks to the top
-  const image = useQuery(
-    api.conversations.GetImage,
-    isImage ? { user: user?.id ?? "", image: content as Id<"_storage"> } : ("skip" as const),
-  );
-
-  const handleCopy = useCallback(async () => {
-    try {
-      if (isImage && image) {
-        // Check if clipboard API and ClipboardItem are supported
-        if (!navigator.clipboard?.write || !window.ClipboardItem) {
-          // Fallback: copy image URL as text
-          await navigator.clipboard.writeText(image);
-          toast.success("Image URL copied to clipboard");
-          return;
-        }
-
-        // Copy image to clipboard
-        const response = await fetch(image);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.status}`);
-        }
-        
-        const blob = await response.blob();
-        
-        // Validate blob type and ensure it's an image
-        const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
-        const blobType = blob.type || 'image/png'; // Default to PNG if type is missing
-        
-        if (!validImageTypes.includes(blobType)) {
-          throw new Error(`Unsupported image type: ${blobType}`);
-        }
-
-        const clipboardItem = new ClipboardItem({ [blobType]: blob });
-        await navigator.clipboard.write([clipboardItem]);
-        toast.success("Image copied to clipboard");
-      } else {
-        // Copy text to clipboard
-        await navigator.clipboard.writeText(content);
-        toast.success("Copied to clipboard");
-      }
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-      
-      // Try fallback for images
-      if (isImage && image) {
-        try {
-          await navigator.clipboard.writeText(image);
-          toast.success("Image URL copied to clipboard");
-        } catch (fallbackErr) {
-          console.error('Fallback copy failed: ', fallbackErr);
-          toast.error("Failed to copy to clipboard");
-        }
-      } else {
-        toast.error("Failed to copy to clipboard");
-      }
-    }
-  }, [content, isImage, image]);
-
-  // Memoize the components object to prevent ReactMarkdown from re-rendering
-  const markdownComponents = React.useMemo(
-    () => ({
-      pre({ children }: React.HTMLProps<HTMLPreElement>) {
-        return <div className="not-prose">{children}</div>;
-      },
-      code({ className, children, ...props }: React.HTMLProps<HTMLElement>) {
-        const match = /language-(\w+)/.exec(className || "");
-        const codeString = String(children).replace(/\n$/, "");
-
-        return match ? (
-          <CodeBlock language={match[1]} code={codeString} />
         ) : (
-          <code
-            className="bg-muted text-foreground px-1.5 py-0.5 rounded text-sm font-mono"
-            {...props}
-          >
-            {children}
-          </code>
-        );
-      },
-      reasoning() {
-        return null;
-      },
-    }),
-    [],
-  );
-
-  if (isImage) {
-    if (!image) {
-      return null;
-    }
-    return (
-      <div className="flex flex-col">
-      <Image
-        src={image}
-        alt="Assistant image"
-        width={400}
-        height={400}
-        className="object-contain"
-      />
-      <div className="flex items-center gap-2 mt-2 ">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="border-0 hover:bg-primary/10"
-                onClick={() => {              
-                  branchConversationMutation({
-                    user: user?.id ?? "",
-                    conversation: conversationId,
-                    branchedFrom: branchedFrom as Id<"messages">,
-                  });
-                }}
-              >
-                <GitBranch className="w-4 h-4 text-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              Branch conversation
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      {status && status.type !== "completed" && (
-        <div className="text-xs text-muted-foreground flex items-center gap-1">
-          {status.type === "pending" && (
-            <>
-              <div className="w-3 h-3 animate-spin border border-current border-t-transparent rounded-full"></div>
-              <span>{status.message || "Generating..."}</span>
-            </>
-          )}
-          {status.type === "error" && (
-            <>
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span className="text-red-500">{status.message || "Error occurred"}</span>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-    );
-  }
-
-  return (
-    <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-hr:border-border prose-lead:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-th:text-foreground prose-td:text-foreground prose-li:text-foreground">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, rehypeRaw]}
-        components={markdownComponents}
-        remarkRehypeOptions={{ allowDangerousHtml: true }}
-      >
-        {content}
-      </ReactMarkdown>
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -406,9 +218,7 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
                   <Copy className="w-4 h-4 text-foreground" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Copy to clipboard
-              </TooltipContent>
+              <TooltipContent side="bottom">Copy to clipboard</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -416,44 +226,259 @@ const AssistantChatMessage = React.memo(({ content, status, isImage, conversatio
                   variant="ghost"
                   size="icon"
                   className="border-0 hover:bg-primary/10"
-                  onClick={() => {              
-                    branchConversationMutation({
-                      user: user?.id ?? "",
-                      conversation: conversationId,
-                      branchedFrom: branchedFrom as Id<"messages">,
-                    });
-                  }}
+                  onClick={handleStartEdit}
                 >
-                  <GitBranch className="w-4 h-4 text-foreground" />
+                  <Pencil className="w-4 h-4 text-foreground" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Branch conversation
-              </TooltipContent>
+              <TooltipContent side="bottom">Edit message</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-        {status && status.type !== "completed" && (
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            {status.type === "pending" && (
-              <>
-                <div className="w-3 h-3 animate-spin border border-current border-t-transparent rounded-full"></div>
-                <span>{status.message || "Generating..."}</span>
-              </>
-            )}
-            {status.type === "error" && (
-              <>
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-red-500">{status.message || "Error occurred"}</span>
-              </>
-            )}
-          </div>
         )}
       </div>
-
     </div>
   );
-});
+};
+
+const AssistantChatMessage = React.memo(
+  ({
+    content,
+    status,
+    isImage,
+    conversationId,
+    branchedFrom,
+  }: ChatMessageProps) => {
+    const { user } = useUser();
+    const branchConversationMutation = useMutation(
+      api.conversations.BranchConversation,
+    );
+    // Move all hooks to the top
+    const image = useQuery(
+      api.conversations.GetImage,
+      isImage
+        ? { user: user?.id ?? "", image: content as Id<"_storage"> }
+        : ("skip" as const),
+    );
+
+    const handleCopy = useCallback(async () => {
+      try {
+        if (isImage && image) {
+          // Check if clipboard API and ClipboardItem are supported
+          if (!navigator.clipboard?.write || !window.ClipboardItem) {
+            // Fallback: copy image URL as text
+            await navigator.clipboard.writeText(image);
+            toast.success("Image URL copied to clipboard");
+            return;
+          }
+
+          // Copy image to clipboard
+          const response = await fetch(image);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.status}`);
+          }
+
+          const blob = await response.blob();
+
+          // Validate blob type and ensure it's an image
+          const validImageTypes = [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/gif",
+            "image/webp",
+          ];
+          const blobType = blob.type || "image/png"; // Default to PNG if type is missing
+
+          if (!validImageTypes.includes(blobType)) {
+            throw new Error(`Unsupported image type: ${blobType}`);
+          }
+
+          const clipboardItem = new ClipboardItem({ [blobType]: blob });
+          await navigator.clipboard.write([clipboardItem]);
+          toast.success("Image copied to clipboard");
+        } else {
+          // Copy text to clipboard
+          await navigator.clipboard.writeText(content);
+          toast.success("Copied to clipboard");
+        }
+      } catch (err) {
+        console.error("Failed to copy: ", err);
+
+        // Try fallback for images
+        if (isImage && image) {
+          try {
+            await navigator.clipboard.writeText(image);
+            toast.success("Image URL copied to clipboard");
+          } catch (fallbackErr) {
+            console.error("Fallback copy failed: ", fallbackErr);
+            toast.error("Failed to copy to clipboard");
+          }
+        } else {
+          toast.error("Failed to copy to clipboard");
+        }
+      }
+    }, [content, isImage, image]);
+
+    // Memoize the components object to prevent ReactMarkdown from re-rendering
+    const markdownComponents = React.useMemo(
+      () => ({
+        pre({ children }: React.HTMLProps<HTMLPreElement>) {
+          return <div className="not-prose">{children}</div>;
+        },
+        code({ className, children, ...props }: React.HTMLProps<HTMLElement>) {
+          const match = /language-(\w+)/.exec(className || "");
+          const codeString = String(children).replace(/\n$/, "");
+
+          return match ? (
+            <CodeBlock language={match[1]} code={codeString} />
+          ) : (
+            <code
+              className="bg-muted text-foreground px-1.5 py-0.5 rounded text-sm font-mono"
+              {...props}
+            >
+              {children}
+            </code>
+          );
+        },
+        reasoning() {
+          return null;
+        },
+      }),
+      [],
+    );
+
+    if (isImage) {
+      if (!image) {
+        return null;
+      }
+      return (
+        <div className="flex flex-col">
+          <Image
+            src={image}
+            alt="Assistant image"
+            width={400}
+            height={400}
+            className="object-contain"
+          />
+          <div className="flex items-center gap-2 mt-2 ">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="border-0 hover:bg-primary/10"
+                    onClick={() => {
+                      branchConversationMutation({
+                        user: user?.id ?? "",
+                        conversation: conversationId,
+                        branchedFrom: branchedFrom as Id<"messages">,
+                      });
+                    }}
+                  >
+                    <GitBranch className="w-4 h-4 text-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Branch conversation
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          {status && status.type !== "completed" && (
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              {status.type === "pending" && (
+                <>
+                  <div className="w-3 h-3 animate-spin border border-current border-t-transparent rounded-full"></div>
+                  <span>{status.message || "Generating..."}</span>
+                </>
+              )}
+              {status.type === "error" && (
+                <>
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-red-500">
+                    {status.message || "Error occurred"}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-hr:border-border prose-lead:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-th:text-foreground prose-td:text-foreground prose-li:text-foreground">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[rehypeKatex, rehypeRaw]}
+          components={markdownComponents}
+          remarkRehypeOptions={{ allowDangerousHtml: true }}
+        >
+          {content}
+        </ReactMarkdown>
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="border-0 hover:bg-primary/10"
+                    onClick={handleCopy}
+                  >
+                    <Copy className="w-4 h-4 text-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Copy to clipboard</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="border-0 hover:bg-primary/10"
+                    onClick={() => {
+                      branchConversationMutation({
+                        user: user?.id ?? "",
+                        conversation: conversationId,
+                        branchedFrom: branchedFrom as Id<"messages">,
+                      });
+                    }}
+                  >
+                    <GitBranch className="w-4 h-4 text-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Branch conversation
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          {status && status.type !== "completed" && (
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              {status.type === "pending" && (
+                <>
+                  <div className="w-3 h-3 animate-spin border border-current border-t-transparent rounded-full"></div>
+                  <span>{status.message || "Generating..."}</span>
+                </>
+              )}
+              {status.type === "error" && (
+                <>
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-red-500">
+                    {status.message || "Error occurred"}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
 
 AssistantChatMessage.displayName = "AssistantChatMessage";
 
@@ -547,7 +572,6 @@ export default function ConversationPage() {
     }
 
     const openrouterKey = localStorage.getItem("openrouter-key");
-
 
     await generateMessageMutation({
       user: user.id,
@@ -701,12 +725,12 @@ export default function ConversationPage() {
                               You
                             </span>
                           </div>
-                            <UserChatMessage
-                              content={msg.content}
-                              isImage={msg.isImage}
-                              conversationId={conversationId}
-                              branchedFrom={msg._id as Id<"messages">}
-                            />
+                          <UserChatMessage
+                            content={msg.content}
+                            isImage={msg.isImage}
+                            conversationId={conversationId}
+                            branchedFrom={msg._id as Id<"messages">}
+                          />
                         </div>
                         <div className="flex-shrink-0">
                           {user?.imageUrl ? (
@@ -751,7 +775,13 @@ export default function ConversationPage() {
                             {msg.reasoning && (
                               <ReasoningBox>{msg.reasoning}</ReasoningBox>
                             )}
-                            <AssistantChatMessage content={msg.content} status={msg.status} isImage={msg.isImage} conversationId={conversationId} branchedFrom={msg._id as Id<"messages">} />
+                            <AssistantChatMessage
+                              content={msg.content}
+                              status={msg.status}
+                              isImage={msg.isImage}
+                              conversationId={conversationId}
+                              branchedFrom={msg._id as Id<"messages">}
+                            />
                           </div>
                         </div>
                       </div>

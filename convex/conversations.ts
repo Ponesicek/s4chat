@@ -22,18 +22,21 @@ export const GetMessagesPaginated = query({
         role: v.union(v.literal("user"), v.literal("assistant")),
         isImage: v.boolean(),
         reasoning: v.optional(v.string()),
-        status: v.optional(v.union( 
-          v.object({
-            type: v.literal("pending"),
-            message: v.string(),
-          }),
-          v.object({
-            type: v.literal("completed"),
-          }),
-          v.object({
-            type: v.literal("error"),
-            message: v.string(),
-          }))),
+        status: v.optional(
+          v.union(
+            v.object({
+              type: v.literal("pending"),
+              message: v.string(),
+            }),
+            v.object({
+              type: v.literal("completed"),
+            }),
+            v.object({
+              type: v.literal("error"),
+              message: v.string(),
+            }),
+          ),
+        ),
       }),
     ),
     isDone: v.boolean(),
@@ -91,18 +94,21 @@ export const GetMessagesPaginatedWithModels = query({
         role: v.union(v.literal("user"), v.literal("assistant")),
         isImage: v.boolean(),
         reasoning: v.optional(v.string()),
-        status: v.optional(v.union( 
-          v.object({
-            type: v.literal("pending"),
-            message: v.string(),
-          }),
-          v.object({
-            type: v.literal("completed"),
-          }),
-          v.object({
-            type: v.literal("error"),
-            message: v.string(),
-          }))),
+        status: v.optional(
+          v.union(
+            v.object({
+              type: v.literal("pending"),
+              message: v.string(),
+            }),
+            v.object({
+              type: v.literal("completed"),
+            }),
+            v.object({
+              type: v.literal("error"),
+              message: v.string(),
+            }),
+          ),
+        ),
       }),
     ),
     isDone: v.boolean(),
@@ -168,22 +174,29 @@ export const GetMessages = query({
       role: v.union(v.literal("user"), v.literal("assistant")),
       isImage: v.boolean(),
       reasoning: v.optional(v.string()),
-      status: v.optional(v.union( 
-        v.object({
-          type: v.literal("pending"),
-          message: v.string(),
-        }),
-        v.object({
-          type: v.literal("completed"),
-        }),
-        v.object({
-          type: v.literal("error"),
-          message: v.string(),
-        }))),
+      status: v.optional(
+        v.union(
+          v.object({
+            type: v.literal("pending"),
+            message: v.string(),
+          }),
+          v.object({
+            type: v.literal("completed"),
+          }),
+          v.object({
+            type: v.literal("error"),
+            message: v.string(),
+          }),
+        ),
+      ),
     }),
   ),
   handler: async (ctx, args) => {
-    if (args.conversation === "cancelled" || args.conversation === "error" || args.conversation === "") {
+    if (
+      args.conversation === "cancelled" ||
+      args.conversation === "error" ||
+      args.conversation === ""
+    ) {
       return [];
     }
     const conversation = await ctx.db.get(args.conversation);
@@ -279,9 +292,12 @@ export const getConversationCancelStatus = query({
   args: {
     conversation: v.id("conversations"),
   },
-  returns: v.union(v.object({
-    cancelled: v.optional(v.boolean()),
-  }), v.null()),
+  returns: v.union(
+    v.object({
+      cancelled: v.optional(v.boolean()),
+    }),
+    v.null(),
+  ),
   handler: async (ctx, args) => {
     const conversation = await ctx.db.get(args.conversation);
     if (!conversation) {
@@ -301,12 +317,12 @@ export const StopGeneration = mutation({
     await ctx.db.patch(args.conversation, {
       cancelled: true,
     });
-    
+
     // Optionally, you could mark pending messages as cancelled here, but doing so
     // concurrently with the streaming action causes write conflicts. Instead, the
     // streaming action will detect cancellation and update the message status
     // itself when it aborts.
-    
+
     return null;
   },
 });
@@ -323,7 +339,12 @@ export const BranchConversation = mutation({
     if (!conversation) {
       throw new Error("Conversation not found");
     }
-    const messages = await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", args.conversation)).collect();
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversation", args.conversation),
+      )
+      .collect();
     const newConversation = await ctx.db.insert("conversations", {
       user: conversation.user,
       name: conversation.name,
@@ -368,7 +389,13 @@ export const EditMessage = mutation({
       content: args.content,
     });
     // Delete all messages except the one being edited
-    const messages = await ctx.db.query("messages").withIndex("by_conversation", (q) => q.eq("conversation", message.conversation)).order("desc").collect();
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversation", message.conversation),
+      )
+      .order("desc")
+      .collect();
     for (const m of messages) {
       const cur = m._id;
       await ctx.db.delete(m._id);

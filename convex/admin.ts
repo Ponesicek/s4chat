@@ -1,4 +1,3 @@
-
 import { mutation } from "./_generated/server";
 
 const models = [
@@ -166,7 +165,7 @@ const models = [
     created_at: "Apr 14, 2025",
     author: "OpenAI",
     context_length: 1000000,
-    reasoning: true,  
+    reasoning: true,
     pinned: true,
     provider: "openrouter" as const,
   },

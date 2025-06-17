@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import Cookies from "js-cookie";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 import { InputArea } from "@/components/InputArea";
 
 export default function ConversationLayout({
@@ -28,24 +28,28 @@ export default function ConversationLayout({
   // Check if there are any pending messages to determine if generation is happening
   const messages = useQuery(
     api.conversations.GetMessages,
-    user?.id ? { user: user.id, conversation: conversationId } : ("skip" as const)
+    user?.id
+      ? { user: user.id, conversation: conversationId }
+      : ("skip" as const),
   );
-  
-  const isGenerating = messages ? messages.some(msg => 
-    msg.role === "assistant" && msg.status?.type === "pending"
-  ) : false;
+
+  const isGenerating = messages
+    ? messages.some(
+        (msg) => msg.role === "assistant" && msg.status?.type === "pending",
+      )
+    : false;
 
   // Keyboard shortcut: Ctrl+Shift+O to redirect to home
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.shiftKey && event.key === 'O') {
+      if (event.ctrlKey && event.shiftKey && event.key === "O") {
         event.preventDefault();
-        router.push('/');
+        router.push("/");
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [router]);
   const sendMessage = useCallback(async () => {
     if (!draft.trim() || !user?.id) return;
@@ -66,7 +70,6 @@ export default function ConversationLayout({
     }
 
     const openrouterKey = localStorage.getItem("openrouter-key");
-
 
     await sendMutation({
       user: user.id,
@@ -103,7 +106,6 @@ export default function ConversationLayout({
         isGenerating={isGenerating}
       />
       <Toaster className="primary" />
-
     </div>
   );
 }

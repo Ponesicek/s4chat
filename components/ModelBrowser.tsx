@@ -156,9 +156,7 @@ export function ModelBrowser() {
           <div className="max-h-96 overflow-y-auto no-scrollbar">
             {filteredModels?.length === 0 ? (
               <div className="p-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No models found
-                </p>
+                <p className="text-sm text-muted-foreground">No models found</p>
               </div>
             ) : (
               <div className="p-3 space-y-2">

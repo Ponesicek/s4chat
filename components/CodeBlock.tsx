@@ -80,7 +80,10 @@ const CodeBlock = React.memo(function CodeBlock({
             {
               pre(node) {
                 // Attach our custom thin scrollbar class so all code blocks have a slimmer scrollbar
-                this.addClassToHast(node, "shiki-code-block thin-scrollbar code-scrollbar");
+                this.addClassToHast(
+                  node,
+                  "shiki-code-block thin-scrollbar code-scrollbar",
+                );
               },
             },
           ],
@@ -115,7 +118,10 @@ const CodeBlock = React.memo(function CodeBlock({
               {
                 pre(node) {
                   // Attach our custom thin scrollbar class so all code blocks have a slimmer scrollbar
-                  this.addClassToHast(node, "shiki-code-block thin-scrollbar code-scrollbar");
+                  this.addClassToHast(
+                    node,
+                    "shiki-code-block thin-scrollbar code-scrollbar",
+                  );
                 },
               },
             ],

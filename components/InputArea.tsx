@@ -129,16 +129,16 @@ export function InputArea({
       // Check for image files in clipboard
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        
+
         // Handle image paste
-        if (item.type.startsWith('image/')) {
+        if (item.type.startsWith("image/")) {
           e.preventDefault(); // Prevent default paste behavior for images
-          
+
           const file = item.getAsFile();
           if (!file) continue;
 
           setDisabled(true);
-          
+
           try {
             const posturl = await generateUploadUrl();
 
@@ -168,12 +168,12 @@ export function InputArea({
             };
             reader.readAsDataURL(file);
           } catch (error) {
-            console.error('Error uploading pasted image:', error);
+            console.error("Error uploading pasted image:", error);
             setDisabled(false);
             // Ensure focus stays on the textarea even if there's an error
             textareaRef.current?.focus();
           }
-          
+
           break; // Only handle the first image
         }
       }
@@ -271,9 +271,8 @@ export function InputArea({
               )}
             </div>
             <div className="flex items-center justify-center h-9 w-9">
-                <Mcp />
+              <Mcp />
             </div>
-            
           </div>
 
           {/* Text Input */}

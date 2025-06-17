@@ -16,8 +16,7 @@ export function Mcp() {
     const cookie = Cookies.get("mcp");
     if (cookie) {
       setIsEnabled(cookie === "true");
-    }
-    else {
+    } else {
       setIsEnabled(false);
       Cookies.set("mcp", "false");
     }
@@ -37,8 +36,8 @@ export function Mcp() {
           <Button
             variant="ghost"
             className={`w-9 h-9 flex items-center border-0 border-border justify-center gap-2 rounded-lg transition-colors p-0 ${
-              isEnabled 
-                ? "bg-accent text-accent-foreground" 
+              isEnabled
+                ? "bg-accent text-accent-foreground"
                 : "hover:bg-accent hover:text-accent-foreground"
             }`}
             onClick={toggleMcp}
@@ -46,13 +45,21 @@ export function Mcp() {
             {getModelIcon("openrouter", "MCP")}
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs bg-card border-border border-1">
+        <TooltipContent
+          side="bottom"
+          className="max-w-xs bg-card border-border border-1"
+        >
           <div className="text-center">
-            <p className="font-medium text-foreground">MCPs (Work in Progress)</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Currently supports: EXA (web search), Context7 (docs), and sequential thinking
+            <p className="font-medium text-foreground">
+              MCPs (Work in Progress)
             </p>
-            <p className="text-xs text-destructive mt-1">(Do not panic, if it looks stuck)</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Currently supports: EXA (web search), Context7 (docs), and
+              sequential thinking
+            </p>
+            <p className="text-xs text-destructive mt-1">
+              (Do not panic, if it looks stuck)
+            </p>
           </div>
         </TooltipContent>
       </Tooltip>

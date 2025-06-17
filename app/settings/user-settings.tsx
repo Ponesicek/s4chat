@@ -36,17 +36,17 @@ export function UserSettings() {
   const checkKey = async (key: string) => {
     setIsCheckingKey(true);
     setIsKeyValid(null);
-    
+
     try {
       const response = await fetch(`https://openrouter.ai/api/v1/key`, {
         headers: {
-          "Authorization": `Bearer ${key}`,
+          Authorization: `Bearer ${key}`,
         },
       });
-      
+
       // Add a small delay to show the loading state
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       if (response.ok) {
         console.log("Key is valid");
         setIsKeyValid(true);
@@ -99,23 +99,23 @@ export function UserSettings() {
         <div className="space-y-2">
           <Label htmlFor="openrouter-key">OpenRouter API Key</Label>
           <div className="flex items-center justify-between">
-          <Input
-            id="openrouter-key"
-            type="password"
-            className="mr-2"
-            placeholder="Enter your OpenRouter API key"
-            value={openrouterKey}
-            onChange={(e) => handleOpenrouterKeyChange(e.target.value)}
-          />
-            <Button 
-              variant="outline" 
+            <Input
+              id="openrouter-key"
+              type="password"
+              className="mr-2"
+              placeholder="Enter your OpenRouter API key"
+              value={openrouterKey}
+              onChange={(e) => handleOpenrouterKeyChange(e.target.value)}
+            />
+            <Button
+              variant="outline"
               onClick={() => checkKey(openrouterKey)}
               disabled={isCheckingKey || !openrouterKey.trim()}
               className={`
                 min-w-[120px] transition-all duration-300 ease-in-out
-                ${isKeyValid === true ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : ''}
-                ${isKeyValid === false ? 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' : ''}
-                ${isCheckingKey ? 'animate-pulse' : ''}
+                ${isKeyValid === true ? "bg-green-50 border-green-200 text-green-700 hover:bg-green-100" : ""}
+                ${isKeyValid === false ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100" : ""}
+                ${isCheckingKey ? "animate-pulse" : ""}
               `}
             >
               <div className="flex items-center gap-2 transition-all duration-200">

@@ -57,32 +57,32 @@ export function CustomizationSettings() {
       darkBg: "#211c26",
     },
   };
-   // Map of background colors for the theme preview buttons based on the chosen color scheme
-   const previewColorsAccent: Record<
-   "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
-   { lightBg: string; darkBg: string }
- > = {
-   default: {
-     lightBg: "#0969da", // GitHub Light primary
-     darkBg: "#4493f8", // GitHub Dark primary
-   },
-   gruvbox: {
-     lightBg: "#d65d0e", // Gruvbox orange (light)
-     darkBg: "#fe8019", // Gruvbox orange (bright) for dark
-   },
-   catpuccin: {
-     lightBg: "#8839ef", // Catppuccin Latte mauve
-     darkBg: "#cba6f7", // Catppuccin Mocha mauve
-   },
-   nord: {
-     lightBg: "#5e81ac", // Nord frost blue (light)
-     darkBg: "#81a1c1", // Nord frost blue (lighter) for dark
-   },
-   t3: {
-     lightBg: "#a43e6a", // T3 primary purple (light)
-     darkBg: "#70284d", // T3 darker purple for dark
-   },
- };
+  // Map of background colors for the theme preview buttons based on the chosen color scheme
+  const previewColorsAccent: Record<
+    "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
+    { lightBg: string; darkBg: string }
+  > = {
+    default: {
+      lightBg: "#0969da", // GitHub Light primary
+      darkBg: "#4493f8", // GitHub Dark primary
+    },
+    gruvbox: {
+      lightBg: "#d65d0e", // Gruvbox orange (light)
+      darkBg: "#fe8019", // Gruvbox orange (bright) for dark
+    },
+    catpuccin: {
+      lightBg: "#8839ef", // Catppuccin Latte mauve
+      darkBg: "#cba6f7", // Catppuccin Mocha mauve
+    },
+    nord: {
+      lightBg: "#5e81ac", // Nord frost blue (light)
+      darkBg: "#81a1c1", // Nord frost blue (lighter) for dark
+    },
+    t3: {
+      lightBg: "#a43e6a", // T3 primary purple (light)
+      darkBg: "#70284d", // T3 darker purple for dark
+    },
+  };
 
   const { lightBg, darkBg } = previewColors[colorScheme];
 
@@ -114,13 +114,17 @@ export function CustomizationSettings() {
 
   const getBgForScheme = (
     scheme: "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
-  ) => (isDark ? previewColorsAccent[scheme].darkBg : previewColorsAccent[scheme].lightBg);
+  ) =>
+    isDark
+      ? previewColorsAccent[scheme].darkBg
+      : previewColorsAccent[scheme].lightBg;
 
   const getFgForScheme = (
     scheme: "default" | "gruvbox" | "catpuccin" | "nord" | "t3",
   ) => (isDark ? schemeFgColors[scheme].dark : schemeFgColors[scheme].light);
 
-  const lightTextColor = theme === "dark" ? lightFgColors[colorScheme] : "var(--foreground)";
+  const lightTextColor =
+    theme === "dark" ? lightFgColors[colorScheme] : "var(--foreground)";
 
   const [mounted, setMounted] = useState(false);
 
@@ -128,11 +132,7 @@ export function CustomizationSettings() {
     setMounted(true);
   }, []);
 
-  if (
-    !mounted ||
-    !colorSchemeMounted ||
-    !fontSettingsMounted
-  ) {
+  if (!mounted || !colorSchemeMounted || !fontSettingsMounted) {
     return (
       <div className="space-y-8">
         <div className="space-y-4">

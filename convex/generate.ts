@@ -5,13 +5,17 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { v } from "convex/values";
-import { generateText, experimental_generateImage as generateImage, streamText, experimental_createMCPClient as createMCPClient,
+import {
+  generateText,
+  experimental_generateImage as generateImage,
+  streamText,
+  experimental_createMCPClient as createMCPClient,
 } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js"
-import { openai } from '@ai-sdk/openai';
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { openai } from "@ai-sdk/openai";
 
 // Global MCP client singleton - only initialized in actions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
@@ -19,8 +23,6 @@ let globalMCPClient: any[] | null = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let globalTools: Record<string, any> = {};
 let mcpInitPromise: Promise<void> | null = null;
-
-
 
 // Define MCP server configurations for better type safety and maintainability
 interface MCPServerConfig {
@@ -37,21 +39,19 @@ interface MCPServerConfig {
 const mcpServerConfigs: MCPServerConfig[] = [
   {
     name: "context7",
-    url: "https://server.smithery.ai/@upstash/context7-mcp/mcp"
+    url: "https://server.smithery.ai/@upstash/context7-mcp/mcp",
   },
   {
-    name: "exa", 
+    name: "exa",
     url: "https://server.smithery.ai/exa/mcp",
     config: {
-      
-        exaApiKey: process.env.EXA_API_KEY || "",
-      
-    }
+      exaApiKey: process.env.EXA_API_KEY || "",
+    },
   },
   {
     name: "sequential thinking",
-    url: "https://server.smithery.ai/@smithery-ai/server-sequential-thinking/mcp"
-  }
+    url: "https://server.smithery.ai/@smithery-ai/server-sequential-thinking/mcp",
+  },
 ];
 
 async function initializeMCPClient() {
@@ -62,7 +62,7 @@ async function initializeMCPClient() {
   mcpInitPromise = (async () => {
     try {
       console.log("Initializing MCP clients...");
-      
+
       const apiKey = process.env.SMITHERY_API_KEY;
       if (!apiKey) {
         throw new Error("SMITHERY_API_KEY environment variable is required");
@@ -73,59 +73,78 @@ async function initializeMCPClient() {
         try {
           // Build URL with API key and optional config parameters
           const url = new URL(serverConfig.url);
-          url.searchParams.set('api_key', apiKey);
-          
+          url.searchParams.set("api_key", apiKey);
+
           // Add config parameters to URL if provided
           if (serverConfig.config) {
             // Add any additional config as query parameters (skip schema-related keys)
             Object.entries(serverConfig.config).forEach(([key, value]) => {
-              if (!['type', 'properties', 'description', 'items', 'default'].includes(key) && value !== undefined && value !== '') {
+              if (
+                ![
+                  "type",
+                  "properties",
+                  "description",
+                  "items",
+                  "default",
+                ].includes(key) &&
+                value !== undefined &&
+                value !== ""
+              ) {
                 url.searchParams.set(key, String(value));
               }
             });
           }
-          
+
           const transport = new StreamableHTTPClientTransport(url);
-          
+
           console.log(`Initializing MCP client for ${serverConfig.name}...`);
           const client = await createMCPClient({ transport });
-          
+
           const tools = await client.tools();
-          console.log(`Initialized MCP client for ${serverConfig.name} with ${Object.keys(tools).length} tools`);
-          
+          console.log(
+            `Initialized MCP client for ${serverConfig.name} with ${Object.keys(tools).length} tools`,
+          );
+
           return { name: serverConfig.name, client, tools };
         } catch (error) {
-          console.error(`Failed to initialize MCP client for ${serverConfig.name}:`, error);
+          console.error(
+            `Failed to initialize MCP client for ${serverConfig.name}:`,
+            error,
+          );
           return null;
         }
       });
 
       // Wait for all client initializations to complete
       const results = await Promise.all(clientPromises);
-      
+
       // Filter out failed initializations and organize successful ones
-      const successfulClients = results.filter((result): result is NonNullable<typeof result> => result !== null);
-      
+      const successfulClients = results.filter(
+        (result): result is NonNullable<typeof result> => result !== null,
+      );
+
       if (successfulClients.length === 0) {
         throw new Error("Failed to initialize any MCP clients");
       }
 
       // Update global state with successful clients
-      globalMCPClient = successfulClients.map(result => result.client);
-             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-       globalTools = successfulClients.reduce((acc, result) => {
-         // Flatten tools from all clients into a single object
-         Object.assign(acc, result.tools);
-         return acc;
-       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-       }, {} as Record<string, any>);
+      globalMCPClient = successfulClients.map((result) => result.client);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      globalTools = successfulClients.reduce(
+        (acc, result) => {
+          // Flatten tools from all clients into a single object
+          Object.assign(acc, result.tools);
+          return acc;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        },
+        {} as Record<string, any>,
+      );
 
       console.log(
         `Successfully initialized ${successfulClients.length}/${mcpServerConfigs.length} MCP clients:`,
-        successfulClients.map(r => r.name).join(", ")
+        successfulClients.map((r) => r.name).join(", "),
       );
       console.log("Available tools:", Object.keys(globalTools));
-
     } catch (error) {
       console.error("Failed to initialize MCP clients:", error);
       globalMCPClient = null;
@@ -295,7 +314,7 @@ export const generateMessageAction = internalAction({
     });
 
     const abortController = new AbortController();
-    
+
     let response;
     let tools;
     let image;
@@ -347,31 +366,31 @@ export const generateMessageAction = internalAction({
         isImage: true,
       });
       return;
-
-    }
-    else {
-      if (args.useMCP) {
-      // Ensure MCP client is ready (non-blocking if already initialized)
-      await initializeMCPClient();
-      tools = Object.keys(globalTools).length > 0 ? globalTools : undefined;
-      
-      response = await streamText({
-        model: openrouter.chat(args.modelName),
-        messages: messagesHistory,
-        tools: tools,
-        maxSteps: 10,
-        system: "Use GFM to format your responses. Do not mention GFM in your responses.",
-        abortSignal: abortController.signal,
-      });
     } else {
-      response = await streamText({
-        model: openrouter.chat(args.modelName),
-        messages: messagesHistory,
-        maxSteps: 10,
-        system: "Use GFM to format your responses. Do not mention GFM in your responses.",
-        abortSignal: abortController.signal,
-      });
-    }
+      if (args.useMCP) {
+        // Ensure MCP client is ready (non-blocking if already initialized)
+        await initializeMCPClient();
+        tools = Object.keys(globalTools).length > 0 ? globalTools : undefined;
+
+        response = await streamText({
+          model: openrouter.chat(args.modelName),
+          messages: messagesHistory,
+          tools: tools,
+          maxSteps: 10,
+          system:
+            "Use GFM to format your responses. Do not mention GFM in your responses.",
+          abortSignal: abortController.signal,
+        });
+      } else {
+        response = await streamText({
+          model: openrouter.chat(args.modelName),
+          messages: messagesHistory,
+          maxSteps: 10,
+          system:
+            "Use GFM to format your responses. Do not mention GFM in your responses.",
+          abortSignal: abortController.signal,
+        });
+      }
     }
     if (!response) {
       return;
@@ -384,25 +403,27 @@ export const generateMessageAction = internalAction({
         prompt: args.content,
         system:
           "You are a helpful assistant that generates a name for a conversation. The name should be a phrase that captures the essence of the conversation. The name should be no more than 5 words. Do not use any formatting or markdown.",
-      }).then(async (generateName) => {
-        if (generateName.text) {
-          await ctx.runMutation(internal.generate.writeResponse, {
-            user: args.user,
-            content: generateName.text.trim(),
-            model: args.model,
-            modelName: args.modelName,
-            conversation: args.conversation,
-            isName: true,
-            status: {
-              type: "pending",
-              message: "Generating name...",
-            },
-            isImage: false,
-          });
-        }
-      }).catch((error) => {
-        console.error("Error generating conversation name:", error);
-      });
+      })
+        .then(async (generateName) => {
+          if (generateName.text) {
+            await ctx.runMutation(internal.generate.writeResponse, {
+              user: args.user,
+              content: generateName.text.trim(),
+              model: args.model,
+              modelName: args.modelName,
+              conversation: args.conversation,
+              isName: true,
+              status: {
+                type: "pending",
+                message: "Generating name...",
+              },
+              isImage: false,
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error generating conversation name:", error);
+        });
     }
 
     let message = "";
@@ -427,16 +448,22 @@ export const generateMessageAction = internalAction({
     try {
       for await (const chunk of response.fullStream) {
         // Check if conversation was cancelled
-        const conversation = await ctx.runQuery(api.conversations.getConversationCancelStatus, {
-          conversation: args.conversation,
-        });
-        
+        const conversation = await ctx.runQuery(
+          api.conversations.getConversationCancelStatus,
+          {
+            conversation: args.conversation,
+          },
+        );
+
         if (conversation?.cancelled) {
-          console.log("Generation cancelled for conversation:", args.conversation);
+          console.log(
+            "Generation cancelled for conversation:",
+            args.conversation,
+          );
           abortController.abort();
           throw new Error("Generation aborted");
         }
-        
+
         switch (chunk.type) {
           case "text-delta":
             message += chunk.textDelta;
@@ -453,14 +480,24 @@ export const generateMessageAction = internalAction({
             };
             break;
           case "tool-call":
-            console.log("Tool call:", chunk.toolName, "with args:", JSON.stringify(chunk.args));
+            console.log(
+              "Tool call:",
+              chunk.toolName,
+              "with args:",
+              JSON.stringify(chunk.args),
+            );
             status = {
               type: "pending",
               message: `Calling ${chunk.toolName}...`,
             };
             break;
           case "tool-result":
-            console.log("Tool result for:", chunk.toolName, "result:", JSON.stringify(chunk.result).substring(0, 200) + "...");
+            console.log(
+              "Tool result for:",
+              chunk.toolName,
+              "result:",
+              JSON.stringify(chunk.result).substring(0, 200) + "...",
+            );
             status = {
               type: "pending",
               message: `Processing ${chunk.toolName} response...`,
@@ -503,14 +540,15 @@ export const generateMessageAction = internalAction({
         isName: false,
         status: {
           type: "error",
-          message: error instanceof Error ? error.message : "Unknown error occurred",
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
         },
         isImage: false,
       });
-      
+
       return message;
     }
-  
+
     await ctx.runMutation(internal.generate.writeResponse, {
       user: args.user,
       content: message,
@@ -526,9 +564,6 @@ export const generateMessageAction = internalAction({
       },
       isImage: false,
     });
-
-
-
 
     if (namePromise) {
       await namePromise;
