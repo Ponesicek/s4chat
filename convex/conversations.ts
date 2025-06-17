@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
+import { Id } from "./_generated/dataModel";
 
 export const GetMessagesPaginated = query({
   args: {
@@ -259,10 +260,15 @@ export const DeleteConversation = mutation({
 export const GetImage = query({
   args: {
     user: v.string(),
-    image: v.id("_storage"),
+    image: v.string(),
   },
   returns: v.string(),
   handler: async (ctx, args) => {
-    return (await ctx.storage.getUrl(args.image)) ?? "";
+    try {
+      return (await ctx.storage.getUrl(args.image as Id<"_storage">)) ?? "";
+    } catch (error) {
+      console.error(error);
+      return "";
+    }
   },
 });

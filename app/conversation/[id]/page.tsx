@@ -138,19 +138,62 @@ const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessa
     [],
   );
 
-  // Handle conditional rendering after hooks
   if (isImage) {
     if (!image) {
       return null;
     }
     return (
+      <div className="flex flex-col items-center justify-center">
       <Image
         src={image}
         alt="Assistant image"
-        width={500}
-        height={500}
-        className="max-w-50 max-h-50 object-contain"
+        width={400}
+        height={400}
+        className="object-contain"
       />
+      <div className="flex items-center justify-between mt-4">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="border-0 hover:bg-primary/10"
+          onClick={handleCopy}
+        >
+            <Copy className="w-4 h-4 text-foreground" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="border-0 hover:bg-primary/10"
+        >
+          <GitBranch className="w-4 h-4 text-foreground" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="border-0 hover:bg-primary/10"
+        >
+          <RotateCcw className="w-4 h-4 text-foreground" />
+        </Button>
+      </div>
+      {status && status.type !== "completed" && (
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          {status.type === "pending" && (
+            <>
+              <div className="w-3 h-3 animate-spin border border-current border-t-transparent rounded-full"></div>
+              <span>{status.message || "Generating..."}</span>
+            </>
+          )}
+          {status.type === "error" && (
+            <>
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <span className="text-red-500">{status.message || "Error occurred"}</span>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+    </div>
     );
   }
 
