@@ -16,7 +16,8 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("settings");
 
   return (
-    <div className="container mx-auto py-10 space-y-8">
+    <div className="w-full overflow-y-auto h-[calc(100vh-40px)] no-scrollbar">
+    <div className="container mx-auto py-10 space-y-8 ">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-2">
@@ -62,6 +63,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
     </div>
   );
 }

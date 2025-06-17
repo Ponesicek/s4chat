@@ -79,7 +79,8 @@ const CodeBlock = React.memo(function CodeBlock({
           transformers: [
             {
               pre(node) {
-                this.addClassToHast(node, "shiki-code-block");
+                // Attach our custom thin scrollbar class so all code blocks have a slimmer scrollbar
+                this.addClassToHast(node, "shiki-code-block thin-scrollbar code-scrollbar");
               },
             },
           ],
@@ -113,7 +114,8 @@ const CodeBlock = React.memo(function CodeBlock({
             transformers: [
               {
                 pre(node) {
-                  this.addClassToHast(node, "shiki-code-block");
+                  // Attach our custom thin scrollbar class so all code blocks have a slimmer scrollbar
+                  this.addClassToHast(node, "shiki-code-block thin-scrollbar code-scrollbar");
                 },
               },
             ],
@@ -124,7 +126,11 @@ const CodeBlock = React.memo(function CodeBlock({
           setIsHighlighting(false);
         } catch (fallbackError) {
           console.error("Fallback highlighting also failed:", fallbackError);
-          const fallbackHtml = `<pre class="shiki-code-block"><code>${code}</code></pre>`;
+          const fallbackHtml = `<pre class="shiki-code-block thin-scrollbar code-scrollbar m-0 p-4 bg-muted/30 text-sm leading-relaxed overflow-x-auto ">
+            <code class="bg-transparent text-foreground/80 font-mono block whitespace-pre-wrap">
+              ${code}
+            </code>
+          </pre>`;
           highlightCache.set(cacheKey, fallbackHtml);
           setHighlightedHtml(fallbackHtml);
           setIsHighlighting(false);
@@ -175,7 +181,7 @@ const CodeBlock = React.memo(function CodeBlock({
             />
           ) : (
             <div className="[&_pre]:m-0 [&_pre]:p-4 [&_pre]:bg-muted/30 [&_pre]:text-sm [&_pre]:leading-relaxed [&_pre]:overflow-x-auto [&_code]:bg-transparent">
-              <pre className="shiki-code-block m-0 p-4 bg-muted/30 text-sm leading-relaxed overflow-x-auto">
+              <pre className="shiki-code-block thin-scrollbar code-scrollbar m-0 p-4 bg-muted/30 text-sm leading-relaxed overflow-x-auto ">
                 <code className="bg-transparent text-foreground/80 font-mono block whitespace-pre-wrap">
                   {code}
                 </code>

@@ -15,6 +15,13 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Id } from "@/convex/_generated/dataModel";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 export default function Home() {
   return (
@@ -33,18 +40,27 @@ export default function Home() {
 
 function SignInForm() {
   return (
-    <div className="flex flex-col gap-8 w-full max-w-lg mx-auto p-8">
-      <p>To start a conversation, please sign in or sign up.</p>
-      <SignInButton mode="modal">
-        <Button size="lg" className="w-full">
-          Sign in
-        </Button>
-      </SignInButton>
-      <SignUpButton mode="modal">
-        <Button size="lg" variant="outline" className="w-full">
-          Sign up
-        </Button>
-      </SignUpButton>
+    <div className="w-full max-w-md mx-auto">
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Welcome to s4chat</CardTitle>
+          <CardDescription>
+            To start a conversation, please sign in or sign up.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <SignInButton mode="modal">
+            <Button size="lg" className="w-full">
+              Sign in
+            </Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button size="lg" variant="outline" className="w-full">
+              Sign up
+            </Button>
+          </SignUpButton>
+        </CardContent>
+      </Card>
     </div>
   );
 }
