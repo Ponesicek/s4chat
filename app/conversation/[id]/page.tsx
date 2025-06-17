@@ -151,7 +151,7 @@ const AssistantChatMessage = React.memo(({ content, status, isImage }: ChatMessa
         height={400}
         className="object-contain"
       />
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mt-2 ">
         <Button
           variant="ghost"
           size="icon"

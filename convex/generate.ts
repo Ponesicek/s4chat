@@ -300,7 +300,7 @@ export const generateMessageAction = internalAction({
     if (args.modelName === "gpt-image-1") {
       messageId = await ctx.runMutation(internal.generate.writeResponse, {
         user: args.user,
-        content: " ",
+        content: "",
         reasoning: "",
         model: args.model,
         modelName: args.modelName,
@@ -319,8 +319,6 @@ export const generateMessageAction = internalAction({
         n: 1,
         size: "1024x1024",
       });
-
-
       // Convert base64 to Uint8Array using Web APIs instead of Node.js Buffer
       const binaryString = atob(image.image.base64);
       const bytes = new Uint8Array(binaryString.length);
