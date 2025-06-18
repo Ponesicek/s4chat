@@ -82,6 +82,9 @@ const SafeMarkdown: React.FC<{
   components?: Record<string, React.ComponentType<any>>;
   className?: string;
 }> = ({ content, components, className = "" }) => {
+  // Normalize content to prevent layout issues
+  const normalizedContent = content.trim();
+  
   return (
     <MarkdownErrorBoundary
       fallback={
@@ -95,7 +98,7 @@ const SafeMarkdown: React.FC<{
         </div>
       }
     >
-      <div className={className}>
+      <div className={`markdown-error-boundary ${className}`}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[
@@ -115,10 +118,17 @@ const SafeMarkdown: React.FC<{
             ],
             rehypeRaw,
           ]}
-          components={components}
+          components={{
+            // Override hr to ensure proper styling
+            hr: ({ ...props }) => (
+              <hr {...props} className="my-4 border-border" />
+            ),
+            // Merge with any existing components
+            ...components,
+          }}
           remarkRehypeOptions={{ allowDangerousHtml: true }}
         >
-          {content}
+          {normalizedContent}
         </ReactMarkdown>
       </div>
     </MarkdownErrorBoundary>

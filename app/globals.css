@@ -709,3 +709,28 @@
 .math-inline {
   display: inline;
 }
+
+/* Horizontal rule fixes to prevent layout offset */
+.prose hr {
+  margin: 1.5rem 0 !important;
+  border: none !important;
+  border-top: 1px solid hsl(var(--border)) !important;
+  height: 0 !important;
+  clear: both !important;
+}
+
+/* Ensure first element doesn't have top margin causing offset */
+.prose > *:first-child {
+  margin-top: 0 !important;
+}
+
+.prose > hr:first-child {
+  margin-top: 0 !important;
+}
+
+/* Prevent floating elements from causing layout issues */
+.prose::after {
+  content: "";
+  display: table;
+  clear: both;
+}
