@@ -232,7 +232,9 @@ export function CustomizationSettings() {
           </p>
         </div>
         <div className="grid gap-2">
-          <div className="grid grid-cols-3 gap-3">            <Button
+          <div className="grid grid-cols-3 gap-3">
+            {" "}
+            <Button
               variant={theme === "light" ? "default" : "outline"}
               className="justify-start px-3 h-auto py-8 border overflow-hidden relative"
               onClick={() => setTheme("light")}
@@ -264,7 +266,8 @@ export function CustomizationSettings() {
               <div className="relative w-full space-y-2 text-left z-10">
                 <span className="block text-xs text-slate-100">Dark</span>
               </div>
-            </Button>            <Button
+            </Button>{" "}
+            <Button
               variant={theme === "system" ? "default" : "outline"}
               className="justify-start px-3 h-auto py-8 border overflow-hidden relative"
               onClick={() => setTheme("system")}

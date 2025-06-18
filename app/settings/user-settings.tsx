@@ -15,7 +15,8 @@ export function UserSettings() {
     showEmail,
     setShowEmail,
     mounted: emailSettingsMounted,
-  } = useEmailSettings();  const [isKeyValid, setIsKeyValid] = useState<boolean | null>(null);
+  } = useEmailSettings();
+  const [isKeyValid, setIsKeyValid] = useState<boolean | null>(null);
   const [isCheckingKey, setIsCheckingKey] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [openrouterKey, setOpenrouterKey] = useState("");
@@ -196,18 +197,19 @@ export function UserSettings() {
           </p>
         </div>
         <div className="flex items-center justify-between">
-          <div className="space-y-1">            <Button
+          <div className="space-y-1">
+            <Button
               variant="outline"
               className="w-full justify-start p-2 pt-5 pb-5 hover:bg-muted transition-colors duration-200"
               onClick={() => {
                 setShowUserProfile(true);
               }}
             >
-              
-             <UserIcon />
-            <Label className="ml-2">Manage Account</Label>
-          </Button>
-          </div>        </div>
+              <UserIcon />
+              <Label className="ml-2">Manage Account</Label>
+            </Button>
+          </div>{" "}
+        </div>
       </div>
 
       {/* UserProfile Modal */}
@@ -224,7 +226,6 @@ export function UserSettings() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

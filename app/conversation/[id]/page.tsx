@@ -40,7 +40,10 @@ class MarkdownErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },
   { hasError: boolean; error?: Error }
 > {
-  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+  constructor(props: {
+    children: React.ReactNode;
+    fallback?: React.ReactNode;
+  }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -84,7 +87,7 @@ const SafeMarkdown: React.FC<{
 }> = ({ content, components, className = "" }) => {
   // Normalize content to prevent layout issues
   const normalizedContent = content.trim();
-  
+
   return (
     <MarkdownErrorBoundary
       fallback={
@@ -161,7 +164,8 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
             isOpen ? "rotate-180" : ""
           }`}
         />
-      </div>      {isOpen && (
+      </div>{" "}
+      {isOpen && (
         <div className="mt-2">
           <SafeMarkdown content={children as string} />
         </div>
@@ -248,7 +252,7 @@ const UserChatMessage = ({
   return (
     <div className="flex flex-col">
       <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-md px-4 py-3 shadow-sm">
-        <div className="prose max-w-none prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-code:bg-primary-foreground/10 prose-code:text-primary-foreground prose-pre:bg-primary-foreground/10 prose-pre:border prose-pre:border-primary-foreground/20 prose-blockquote:text-primary-foreground/80 prose-blockquote:border-l-primary-foreground/30 prose-hr:border-primary-foreground/30 prose-lead:text-primary-foreground/80 prose-a:text-primary-foreground prose-a:underline hover:prose-a:text-primary-foreground/80 prose-th:text-primary-foreground prose-td:text-primary-foreground prose-li:text-primary-foreground">
+        <div className="prose max-w-none prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-strong:text-primary-foreground prose-code:bg-primary-foreground/10 prose-code:text-primary-foreground prose-pre:bg-primary-foreground/10 prose-pre:border prose-pre:border-primary-foreground/20 prose-blockquote:text-primary-foreground/80 prose-blockquote:border-l-primary-foreground/30 prose-hr:border-primary-foreground/30 prose-lead:text-primary-foreground/80 prose-a:text-primary-foreground prose-a:underline prose-a:hover:text-primary-foreground/80 prose-th:text-primary-foreground prose-td:text-primary-foreground prose-li:text-primary-foreground">
           {isEditing ? (
             <Textarea
               ref={textareaRef}
@@ -264,21 +268,32 @@ const UserChatMessage = ({
                 }
               }}
               autoFocus
-            />          ) : (
-            <SafeMarkdown 
-              content={content} 
+            />
+          ) : (
+            <SafeMarkdown
+              content={content}
               components={{
                 p({ children }) {
                   return <p className="text-primary-foreground">{children}</p>;
                 },
                 strong({ children }) {
-                  return <strong className="text-primary-foreground">{children}</strong>;
+                  return (
+                    <strong className="text-primary-foreground">
+                      {children}
+                    </strong>
+                  );
                 },
                 em({ children }) {
-                  return <em className="text-primary-foreground">{children}</em>;
+                  return (
+                    <em className="text-primary-foreground">{children}</em>
+                  );
                 },
                 code({ children }) {
-                  return <code className="bg-primary-foreground/10 text-primary-foreground px-1 py-0.5 rounded text-sm">{children}</code>;
+                  return (
+                    <code className="bg-primary-foreground/10 text-primary-foreground px-1 py-0.5 rounded text-sm">
+                      {children}
+                    </code>
+                  );
                 },
               }}
             />
@@ -515,8 +530,9 @@ const AssistantChatMessage = React.memo(
           )}
         </div>
       );
-    }    return (
-      <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-hr:border-border prose-lead:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-th:text-foreground prose-td:text-foreground prose-li:text-foreground">
+    }
+    return (
+      <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-hr:border-border prose-lead:text-muted-foreground prose-a:text-primary prose-a:hover:text-primary/80 prose-th:text-foreground prose-td:text-foreground prose-li:text-foreground">
         <SafeMarkdown content={content} components={markdownComponents} />
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">

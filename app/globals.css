@@ -677,7 +677,8 @@
 }
 
 /* Prevent KaTeX from breaking layout */
-.katex, .katex-display {
+.katex,
+.katex-display {
   overflow-x: auto !important;
   overflow-y: hidden !important;
   max-width: 100% !important;
@@ -715,8 +716,9 @@
 }
 
 /* LaTeX math rendering fallback */
-.math-inline, .math-display {
-  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+.math-inline,
+.math-display {
+  font-family: "KaTeX_Main", "Times New Roman", serif;
   color: inherit;
 }
 
@@ -770,7 +772,9 @@
 }
 
 /* Specific fixes for mathematical content that might cause issues */
-.katex, .katex-display, .katex-html {
+.katex,
+.katex-display,
+.katex-html {
   max-width: 100% !important;
   overflow: hidden !important;
   word-wrap: break-word !important;
@@ -784,7 +788,8 @@
   overflow-wrap: break-word !important;
 }
 
-.prose td, .prose th {
+.prose td,
+.prose th {
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   word-break: break-word !important;

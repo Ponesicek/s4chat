@@ -34,7 +34,7 @@ export default function SettingsPage() {
             <TabsTrigger value="user">User Settings</TabsTrigger>
             <TabsTrigger value="customization">Customization</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="user" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
@@ -48,7 +48,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="customization" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
