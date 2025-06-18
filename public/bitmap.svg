@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="120"
+   height="120"
+   viewBox="0 0 120 120"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="bitmap.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="120"
+       height="120"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#cc0000;fill-opacity:1;stroke-width:0.804134"
+       id="rect4"
+       width="130.68826"
+       height="86.234818"
+       x="-5.5870447"
+       y="16.275305" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:98.8552px;font-family:'Inter Variable';-inkscape-font-specification:'Inter Variable';text-align:start;letter-spacing:-13.37px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke-width:8.23789"
+       x="6.9659476"
+       y="94.363174"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         x="6.9659476"
+         y="94.363174"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'RobotoMono Nerd Font';-inkscape-font-specification:'RobotoMono Nerd Font';letter-spacing:-13.37px;fill:#e8db44;fill-opacity:1;stroke-width:8.23789">S<tspan
+   style="fill:#ffffff;fill-opacity:1"
+   id="tspan4">4</tspan></tspan></text>
+  </g>
+</svg>

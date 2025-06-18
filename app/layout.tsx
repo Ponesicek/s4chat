@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   title: "S4 Chat",
   description: "AI Chat Application",
   icons: {
-    icon: "/convex.svg",
+    icon: "/bitmap.svg",
   },
 };
 
