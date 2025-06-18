@@ -92,3 +92,4 @@ npm start
 1. The image generation sucks, it doesn't have context about the past and can not take images.
 2. Too heavy on backend, didn't have time to optimize it enough.
 3. The favicon sucks so hard, I am not a designer :c
+4. Some themes don't work well, didn't have time to test them all properly.
