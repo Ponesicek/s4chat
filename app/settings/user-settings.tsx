@@ -7,18 +7,19 @@ import { Switch } from "@/components/ui/switch";
 import { useEmailSettings } from "@/hooks/use-email-settings";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, XIcon, LoaderIcon } from "lucide-react";
+import { CheckIcon, XIcon, LoaderIcon, UserIcon } from "lucide-react";
+import { UserProfile } from "@clerk/clerk-react";
 
 export function UserSettings() {
   const {
     showEmail,
     setShowEmail,
     mounted: emailSettingsMounted,
-  } = useEmailSettings();
-  const [isKeyValid, setIsKeyValid] = useState<boolean | null>(null);
+  } = useEmailSettings();  const [isKeyValid, setIsKeyValid] = useState<boolean | null>(null);
   const [isCheckingKey, setIsCheckingKey] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [openrouterKey, setOpenrouterKey] = useState("");
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -28,6 +29,23 @@ export function UserSettings() {
       setOpenrouterKey(savedKey);
     }
   }, []);
+
+  // Handle ESC key to close UserProfile modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && showUserProfile) {
+        setShowUserProfile(false);
+      }
+    };
+
+    if (showUserProfile) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showUserProfile]);
 
   const handleOpenrouterKeyChange = (value: string) => {
     setOpenrouterKey(value);
@@ -169,6 +187,44 @@ export function UserSettings() {
           />
         </div>
       </div>
+      <Separator />
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium">Clerk</h3>
+          <p className="text-sm text-muted-foreground">
+            Here you can manage your Clerk settings.
+          </p>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">            <Button
+              variant="outline"
+              className="w-full justify-start p-2 pt-5 pb-5 hover:bg-muted transition-colors duration-200"
+              onClick={() => {
+                setShowUserProfile(true);
+              }}
+            >
+              
+             <UserIcon />
+            <Label className="ml-2">Manage Account</Label>
+          </Button>
+          </div>        </div>
+      </div>
+
+      {/* UserProfile Modal */}
+      {showUserProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="relative bg-background rounded-lg shadow-lg">
+            <button
+              onClick={() => setShowUserProfile(false)}
+              className="absolute top-2 right-2 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+            <UserProfile />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

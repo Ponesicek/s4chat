@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
@@ -13,11 +13,11 @@ import { CustomizationSettings } from "./customization-settings";
 import { UserSettings } from "./user-settings";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("settings");
+  const [activeTab, setActiveTab] = useState("user");
 
   return (
     <div className="w-full overflow-y-auto h-[calc(100vh-40px)] no-scrollbar">
-      <div className="container mx-auto py-10 space-y-8 ">
+      <div className="container mx-auto py-10 space-y-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground mt-2">
@@ -30,7 +30,12 @@ export default function SettingsPage() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsContent value="settings" className="space-y-6 mt-0">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="user">User Settings</TabsTrigger>
+            <TabsTrigger value="customization">Customization</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="user" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
                 <CardTitle>User Settings</CardTitle>
@@ -43,13 +48,8 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-6"
-        >
-          <TabsContent value="settings" className="space-y-6 mt-0">
+          
+          <TabsContent value="customization" className="space-y-6 mt-0">
             <Card>
               <CardHeader>
                 <CardTitle>Customization</CardTitle>

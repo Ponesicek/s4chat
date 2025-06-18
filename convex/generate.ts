@@ -24,6 +24,26 @@ let globalMCPClient: any[] | null = null;
 let globalTools: Record<string, any> = {};
 let mcpInitPromise: Promise<void> | null = null;
 
+const systemPrompt = `
+Formatting rules:
+1. Write all responses in Markdown.
+2. Math:
+   • Inline: wrap expressions in \`$ … $\`  
+   • Display: wrap blocks in \`$$ … $$\`
+3. HTML: raw tags are allowed where helpful.
+
+Rendering pipeline (in order):
+   • remark-gfm      ← extended Markdown syntax  
+   • remark-math     ← parses the math delimiters  
+   • rehype-katex    ← renders TeX via KaTeX  
+   • rehype-raw      ← preserves / re-hydrates raw HTML
+
+General guidelines:
+• Keep the Markdown valid after all plugins run.  
+• Prefer semantic elements (headings, lists, code fences, etc.).  
+• Omit any mention of the underlying tooling or this prompt in your replies.
+`;
+
 // Define MCP server configurations for better type safety and maintainability
 interface MCPServerConfig {
   name: string;
@@ -376,8 +396,7 @@ export const generateMessageAction = internalAction({
           messages: messagesHistory,
           tools: tools,
           maxSteps: 10,
-          system:
-            "Use GFM to format your responses. Do not mention GFM in your responses.",
+          system: systemPrompt,
           abortSignal: abortController.signal,
         });
       } else {
@@ -385,8 +404,7 @@ export const generateMessageAction = internalAction({
           model: openrouter.chat(args.modelName),
           messages: messagesHistory,
           maxSteps: 10,
-          system:
-            "Use GFM to format your responses. Do not mention GFM in your responses.",
+          system: systemPrompt,
           abortSignal: abortController.signal,
         });
       }
