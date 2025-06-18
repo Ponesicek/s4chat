@@ -662,3 +662,50 @@
 .prose {
   @apply prose-p:m-1 prose-headings:m-1 prose-ul:m-1;
 }
+
+/* KaTeX error handling styles */
+.katex-error {
+  color: #cc0000 !important;
+  background-color: transparent !important;
+  border: none !important;
+  font-size: inherit !important;
+  display: inline !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Prevent KaTeX from breaking layout */
+.katex, .katex-display {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+}
+
+.katex-display {
+  margin: 1em 0 !important;
+}
+
+/* Ensure error boundaries don't break layout */
+.markdown-error-boundary {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* LaTeX math rendering fallback */
+.math-inline, .math-display {
+  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+  color: inherit;
+}
+
+.math-display {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+.math-inline {
+  display: inline;
+}

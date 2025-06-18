@@ -35,6 +35,96 @@ import {
 } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 
+// Error boundary for markdown rendering
+class MarkdownErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback?: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Markdown rendering error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        this.props.fallback || (
+          <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md p-3">
+            <p className="text-sm text-red-700 dark:text-red-300">
+              Unable to render content due to formatting errors. Raw content:
+            </p>
+            <pre className="mt-2 text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
+              {typeof this.props.children === "string"
+                ? this.props.children
+                : "Content rendering failed"}
+            </pre>
+          </div>
+        )
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Safe markdown wrapper component
+const SafeMarkdown: React.FC<{
+  content: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  components?: Record<string, React.ComponentType<any>>;
+  className?: string;
+}> = ({ content, components, className = "" }) => {
+  return (
+    <MarkdownErrorBoundary
+      fallback={
+        <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+          <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+            Content contains formatting errors but is displayed as plain text:
+          </p>
+          <div className="text-sm whitespace-pre-wrap break-words">
+            {content}
+          </div>
+        </div>
+      }
+    >
+      <div className={className}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[
+            [
+              rehypeKatex,
+              {
+                errorColor: "#cc0000",
+                throwOnError: false,
+                displayMode: false,
+                output: "html",
+                strict: false,
+                trust: false,
+                fleqn: false,
+                leqno: false,
+                macros: {},
+              },
+            ],
+            rehypeRaw,
+          ]}
+          components={components}
+          remarkRehypeOptions={{ allowDangerousHtml: true }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+    </MarkdownErrorBoundary>
+  );
+};
+
 interface ChatMessageProps {
   content: string;
   isImage?: boolean;
@@ -57,18 +147,13 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Reasoning</span>
         <ChevronDown
-          className={`w-4 h-4 text-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-foreground transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
-      </div>
-      {isOpen && (
+      </div>      {isOpen && (
         <div className="mt-2">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex, rehypeRaw]}
-            remarkRehypeOptions={{ allowDangerousHtml: true }}
-          >
-            {children as string}
-          </ReactMarkdown>
+          <SafeMarkdown content={children as string} />
         </div>
       )}
     </div>
@@ -169,9 +254,24 @@ const UserChatMessage = ({
                 }
               }}
               autoFocus
+            />          ) : (
+            <SafeMarkdown 
+              content={content} 
+              components={{
+                p({ children }) {
+                  return <p className="text-primary-foreground">{children}</p>;
+                },
+                strong({ children }) {
+                  return <strong className="text-primary-foreground">{children}</strong>;
+                },
+                em({ children }) {
+                  return <em className="text-primary-foreground">{children}</em>;
+                },
+                code({ children }) {
+                  return <code className="bg-primary-foreground/10 text-primary-foreground px-1 py-0.5 rounded text-sm">{children}</code>;
+                },
+              }}
             />
-          ) : (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           )}
         </div>
       </div>
@@ -405,18 +505,9 @@ const AssistantChatMessage = React.memo(
           )}
         </div>
       );
-    }
-
-    return (
+    }    return (
       <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-hr:border-border prose-lead:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-th:text-foreground prose-td:text-foreground prose-li:text-foreground">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeKatex, rehypeRaw]}
-          components={markdownComponents}
-          remarkRehypeOptions={{ allowDangerousHtml: true }}
-        >
-          {content}
-        </ReactMarkdown>
+        <SafeMarkdown content={content} components={markdownComponents} />
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
             <TooltipProvider>

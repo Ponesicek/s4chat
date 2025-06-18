@@ -30,7 +30,11 @@ Formatting rules:
 2. Math:
    • Inline: wrap expressions in \`$ … $\`  
    • Display: wrap blocks in \`$$ … $$\`
-3. HTML: raw tags are allowed where helpful.
+3. Currency and dollar signs:
+   • When referring to money/currency, escape dollar signs with backslash: \\\$
+   • Examples: \\\$100, \\\$50.99, costs \\\$25
+   • Only use unescaped \$ for mathematical expressions
+4. HTML: raw tags are allowed where helpful.
 
 Rendering pipeline (in order):
    • remark-gfm      ← extended Markdown syntax  
@@ -40,7 +44,8 @@ Rendering pipeline (in order):
 
 General guidelines:
 • Keep the Markdown valid after all plugins run.  
-• Prefer semantic elements (headings, lists, code fences, etc.).  
+• Prefer semantic elements (headings, lists, code fences, etc.).
+• Always escape dollar signs when discussing money/prices to prevent LaTeX rendering errors
 • Omit any mention of the underlying tooling or this prompt in your replies.
 `;
 
