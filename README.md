@@ -6,7 +6,7 @@
 
 Building S4 Chat has been... an interesting journey. When I started this project for the T3 cloneathon, I wouldn't guess that I would get this far, but here I am, with a fully functioning chatapp. I really enjoyed the last week, since I got to try so many tools that were new to me. Convex, Clerk, openrouter, I love them all <3
 
-### Technology Stack Decisions
+### My Stack
 
 Since I like to watch [theo](https://www.youtube.com/@t3dotgg), I have a general knowledge about the webdev world, even though i preffer backend. I ended up going with [Convex](https://www.convex.dev/), because I wanted to have as much time for the frontend as possible. I also picked [Next.js](https://nextjs.org/), since that is what I have the most experience with, [Clerk](https://clerk.com/) for auth and [Openrouter](https://openrouter.ai/) with [Vercel AI SDK](https://ai-sdk.dev/) for my models, since I wanted an all-in-one approach for my AI API.
 
