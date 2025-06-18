@@ -4,7 +4,7 @@
 
 ## My Journey
 
-Building S4 Chat has been... an interesting journey. When I started this project for the T3 cloneathon, I wouldn't guess that I would get this far, but here I am, with a fully funcioning chatapp. I really enjoyed the last week, since I got to try so many tools that were new to me. Convex, Clerk, openrouter, I love them all <3
+Building S4 Chat has been... an interesting journey. When I started this project for the T3 cloneathon, I wouldn't guess that I would get this far, but here I am, with a fully functioning chatapp. I really enjoyed the last week, since I got to try so many tools that were new to me. Convex, Clerk, openrouter, I love them all <3
 
 ### Technology Stack Decisions
 
@@ -19,7 +19,7 @@ Jesus christ, I fell in love. The ability to just write to DB and know that it W
 On the other hand, Clerk was more of a hit or miss for me. The initial setup was great, wrap everything in \<ClerkProvider\> and it was good to go. The devil came after i needed to do settings. Maybe it is just me who can't read, but doing stuff like showing the manage profile popup was weird. Maybe I was too spoiled by Clerk's documentation...
 
 ## MCPs
-They are great. With one paste of a link, my models became way more usefull. I am looking forward for them to get out of Vercel AI SDK beta, since the integration felt a bit too "hacky", but even with the weird setup (maybe caused a bit by me, since I used [smithery.ai](https://smithery.ai/) as my MCP provider), they were thousand times easier to implement than normal tools.
+They are great. With one paste of a link, my models became way more usefull. I am looking forward for them to get out of Vercel AI SDK beta, since the integration felt bad, but even with the weird setup (maybe caused a bit by me, since I used [smithery.ai](https://smithery.ai/) as my MCP provider), they were thousand times easier to implement than regular tools.
 
 
 ### What I Learned
@@ -27,19 +27,68 @@ Since my previous experiences with React were:
 - One unfinished website for my friend
 - One AI generated UI by v0
 
-I got to learn many stuff. Noteably, how do server components work (It clicked for me in the middle of the project, that's why they aren't utilised) and
+I got to learn many stuff. Noteably, how do server components work (It clicked for me in the middle of the project, that's why they aren't utilised) and it helped my understand hooks a bit better.
 
-### The Result
+### How to run
 
-S4 Chat isn't just a clone—it's a modern, feature-rich chat application that demonstrates the incredible possibilities when you combine the right tools with a clear vision. Every conversation feels smooth, every interaction is responsive, and the AI integration feels magical.
+#### Prerequisites
+- Node.js (version 18 or later)
+- npm or yarn package manager
 
-# Contents
+#### Environment Setup
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd s4chat
+```
 
-# Vercel
+2. Install dependencies:
+```bash
+npm install
+```
 
-# Shadcn
+3. Set up environment variables:
+Create a `.env.local` file in the root directory with the variables from `.env.example`
 
+#### Service Setup
 
+4. **Convex Setup**:
+   - Create a Convex account at [convex.dev](https://convex.dev)
+   - Install Convex CLI: `npm install -g convex`
+   - Run `npx convex dev` to initialize your Convex project
+   - Follow the prompts to create a new project or connect to existing one
+   - Your `NEXT_PUBLIC_CONVEX_URL` will be provided after setup
 
+5. **Clerk Setup**:
+   - Create a Clerk account at [clerk.com](https://clerk.com)
+   - Create a new application
+   - Copy your publishable key and secret key to the environment variables
+   - Configure the JWT template for Convex integration (see [Clerk + Convex docs](https://docs.convex.dev/auth/clerk))
 
-# Limitations
+6. **OpenRouter Setup**:
+   - Create an account at [openrouter.ai](https://openrouter.ai)
+   - Generate an API key and add it to your environment variables
+
+#### Running the Application
+
+7. Start the development servers:
+```bash
+npm run dev
+```
+
+This will start both the Next.js frontend (`next dev`) and Convex backend (`convex dev`) concurrently.
+
+8. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+#### Production Build
+
+To build for production:
+```bash
+npm run build
+npm start
+```
+
+## Limitations
+1. The image generation sucks, it doesn't have context about the past and can not take images.
+2. Too heavy on backend, didn't have time to optimize it enough.
+3. The favicon sucks so hard, I am not a designer :c
