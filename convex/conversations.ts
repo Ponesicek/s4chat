@@ -130,25 +130,41 @@ export const GetMessagesPaginatedWithModels = query({
       .order("desc")
       .paginate(args.paginationOpts);
 
-    // Fetch model information for each message
-    const messagesWithModels = await Promise.all(
-      result.page.map(async (message) => {
-        const model = await ctx.db.get(message.model);
+    // Fetch model information for each message using batch optimization
+    // First, get unique model IDs to avoid duplicate queries
+    const uniqueModelIds = [...new Set(result.page.map(message => message.model))];
+    
+    // Batch fetch all unique models in a single operation
+    const models = await Promise.all(
+      uniqueModelIds.map(async (modelId) => {
+        const model = await ctx.db.get(modelId);
         if (!model) {
-          throw new Error("Model not found");
+          throw new Error(`Model not found: ${modelId}`);
         }
-        return {
-          ...message,
-          model: {
-            _id: model._id,
-            name: model.name,
-            model: model.model,
-            author: model.author,
-            provider: model.provider,
-          },
-        };
-      }),
+        return model;
+      })
     );
+    
+    // Create a lookup map for O(1) model access
+    const modelMap = new Map(models.map(model => [model._id, model]));
+    
+    // Map messages with their models using the lookup map
+    const messagesWithModels = result.page.map((message) => {
+      const model = modelMap.get(message.model);
+      if (!model) {
+        throw new Error(`Model not found in map: ${message.model}`);
+      }
+      return {
+        ...message,
+        model: {
+          _id: model._id,
+          name: model.name,
+          model: model.model,
+          author: model.author,
+          provider: model.provider,
+        },
+      };
+    });
 
     return {
       page: messagesWithModels,
@@ -209,7 +225,7 @@ export const GetMessages = query({
         q.eq("conversation", args.conversation),
       )
       .order("asc")
-      .take(40);
+      .take(20);
   },
 });
 

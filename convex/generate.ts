@@ -467,6 +467,49 @@ export const generateMessageAction = internalAction({
     });
 
     console.log("Generating message with model: " + args.modelName);
+    
+    // Throttling mechanism for writeResponse calls
+    let lastWriteTime = 0;
+    const WRITE_THROTTLE_MS = 200; // Maximum one write per 200ms
+    let pendingWrite = false;
+    let throttleTimeout: NodeJS.Timeout | null = null;
+    
+    const throttledWrite = async (writeData: {
+      user: string;
+      content: string;
+      reasoning: string;
+      model: Id<"models">;
+      modelName: string;
+      conversation: Id<"conversations">;
+      messageId: Id<"messages">;
+      isName: boolean;
+      status: { type: string; message: string };
+      isImage: boolean;
+    }) => {
+      const now = Date.now();
+      const timeSinceLastWrite = now - lastWriteTime;
+      
+      if (timeSinceLastWrite >= WRITE_THROTTLE_MS && !pendingWrite) {
+        // Can write immediately
+        lastWriteTime = now;
+        await ctx.runMutation(internal.generate.writeResponse, writeData);
+      } else {
+        // Need to throttle - schedule a delayed write
+        if (throttleTimeout) {
+          clearTimeout(throttleTimeout);
+        }
+        
+        pendingWrite = true;
+        const delay = Math.max(0, WRITE_THROTTLE_MS - timeSinceLastWrite);
+        
+        throttleTimeout = setTimeout(async () => {
+          lastWriteTime = Date.now();
+          pendingWrite = false;
+          await ctx.runMutation(internal.generate.writeResponse, writeData);
+        }, delay);
+      }
+    };
+    
     try {
       for await (const chunk of response.fullStream) {
         // Check if conversation was cancelled
@@ -536,7 +579,9 @@ export const generateMessageAction = internalAction({
             console.log("Unknown chunk type:", chunk.type);
             break;
         }
-        await ctx.runMutation(internal.generate.writeResponse, {
+        
+        // Use throttled write instead of direct writeResponse call
+        await throttledWrite({
           user: args.user,
           content: message,
           reasoning: reasoning,

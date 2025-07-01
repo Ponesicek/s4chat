@@ -150,7 +150,7 @@ interface ChatMessageProps {
   branchedFrom?: Id<"messages">;
 }
 
-const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
+const ReasoningBox = React.memo(({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div
@@ -172,9 +172,11 @@ const ReasoningBox = ({ children }: { children: React.ReactNode }) => {
       )}
     </div>
   );
-};
+});
 
-const UserChatMessage = ({
+ReasoningBox.displayName = "ReasoningBox";
+
+const UserChatMessage = React.memo(({
   content,
   isImage,
   branchedFrom,
@@ -363,7 +365,9 @@ const UserChatMessage = ({
       </div>
     </div>
   );
-};
+});
+
+UserChatMessage.displayName = "UserChatMessage";
 
 const AssistantChatMessage = React.memo(
   ({
@@ -634,7 +638,7 @@ export default function ConversationPage() {
         }
       : ("skip" as const),
     {
-      initialNumItems: 7,
+      initialNumItems: 5,
     },
   );
 
