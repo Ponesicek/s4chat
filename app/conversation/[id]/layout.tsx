@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useCallback, useState, useEffect } from "react";
+import React, { ReactNode, useCallback, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
@@ -25,19 +25,21 @@ export default function ConversationLayout({
   const sendImageMutation = useMutation(api.generate.saveImage);
   const [images, setImages] = useState<string[]>([]);
 
-  // Check if there are any pending messages to determine if generation is happening
-  const messages = useQuery(
+  // Lightweight query to check if any message is generating - only fetches status
+  const generationStatus = useQuery(
     api.conversations.GetMessages,
-    user?.id
+    user?.id && conversationId
       ? { user: user.id, conversation: conversationId }
       : ("skip" as const),
   );
 
-  const isGenerating = messages
-    ? messages.some(
-        (msg) => msg.role === "assistant" && msg.status?.type === "pending",
-      )
-    : false;
+  const isGenerating = React.useMemo(() => {
+    return generationStatus
+      ? generationStatus.some(
+          (msg) => msg.role === "assistant" && msg.status?.type === "pending",
+        )
+      : false;
+  }, [generationStatus]);
 
   // Keyboard shortcut: Ctrl+Shift+O to redirect to home
   useEffect(() => {
